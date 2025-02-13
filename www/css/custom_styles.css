@@ -24,7 +24,7 @@
        justify-content: center; /* Align items to the start of the container */
        margin-left: 0; /* Match the sidebar width */
        position: relative; /* Ensure the container is positioned correctly */
-       width: 180px; /* Match the width of the sidebar-footer */
+       width: 240px; /* Match the width of the sidebar-footer */
        padding: 4px 6px; /* Add padding to give some space around the title */
        margin-top: 5px;  
        background-color: #fff; /* Light background color to distinguish the title area */
@@ -34,7 +34,7 @@
     }
      
      .header-title {
-      font-size: 16px;
+      font-size: 12px;
       font-weight: 400;
       color: #000000;
       padding-left: 5px; /* Space after the vertical line */
@@ -52,3 +52,23 @@
       z-index: 1050;
       overflow: auto;
   }
+
+  /* Style the clock container */
+  .clock-container {
+    list-style-type: none;
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;  /* Positions the clock on the far right */
+    align-items: center;
+    margin-right: 10px;         /* Adjust spacing as desired */
+  }
+  
+  /* Style the clock text */
+  #dynamic-clock {
+    font-size: 12px;
+    color: #000000;
+    border: 1px solid #969696;
+    padding: 8px 16px;
+    border-radius: 5px;
+  }
+  
