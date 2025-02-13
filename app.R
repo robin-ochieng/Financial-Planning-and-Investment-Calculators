@@ -3,7 +3,8 @@ library(bs4Dash)
 library(ggplot2)
 library(bslib)
 
-source("modules/retirement_calc.R")
+source("modules/retirementCalculator.R")
+source("modules/irrCalculator.R")
 
 # Define a custom theme using bslib
 my_theme <- bs_theme(
@@ -22,7 +23,7 @@ my_theme <- bs_theme(
 
 # Define the UI
 ui <- dashboardPage(
-  title = "Retirement Calculator",
+  title = "Financial & Retirement Planning Workbench",
   freshTheme = my_theme,
   dark = NULL,
   help = NULL,
@@ -33,16 +34,22 @@ ui <- dashboardPage(
     title = dashboardBrand(
       title = tags$div(
         class = "text-center header-title-container",
-        tags$h4("Retirement Calculator", class = "header-title")
+        tags$h4("Financial & Retirement Planning Workbench", class = "header-title")
       )
+    ),
+    tags$li(
+      class = "clock-container",
+    tags$span(
+      id = "dynamic-clock"
+      ),
     )
   ),
   dashboardSidebar(
     tags$div(
       class = "menu-container",
     sidebarMenu(
-      menuItem("Retirement Calculator", tabName = "retirement_calculator", icon = icon("user")),
-      menuItem("IRR Calculator", tabName = "details", icon = icon("user"))
+      menuItem("Retirement Calculator", tabName = "retirementCalculator", icon = icon("user")),
+      menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("user"))
     )
    )
   ),
@@ -56,9 +63,13 @@ ui <- dashboardPage(
         rel = "stylesheet")
     ),
     tabItems(
-      tabItem(tabName = "details",
+      tabItem(tabName = "retirementCalculator",
               # Call the module UI with an ID (e.g., "retirement")
               retirementCalcUI("retirement")
+      ),
+      tabItem(tabName = "irrCalculator",
+              # Call the module UI with an ID (e.g., "irr")
+              
       )
     )
   )
