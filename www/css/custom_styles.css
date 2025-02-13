@@ -1,0 +1,54 @@
+
+    /* Set the background color of the sidebar */
+    .main-sidebar {
+        background-color: #fff !important;  /* Apply the desired color */
+        box-shadow: none !important;
+        padding-top: 0;
+        border-top: none;
+        border-bottom: none;
+    }
+    .control-button {
+       font-size: 14px;
+       margin-right: 10px; 
+       margin-left: 10px; 
+       background-color: white;
+       color: #0137A6; 
+       border: 1px solid #0137A6; 
+       padding: 8px 16px;
+       border-radius: 5px;
+       cursor: pointer;
+    }
+    .header-title-container {
+       display: flex;
+       align-items: center;
+       justify-content: center; /* Align items to the start of the container */
+       margin-left: 0; /* Match the sidebar width */
+       position: relative; /* Ensure the container is positioned correctly */
+       width: 180px; /* Match the width of the sidebar-footer */
+       padding: 4px 6px; /* Add padding to give some space around the title */
+       margin-top: 5px;  
+       background-color: #fff; /* Light background color to distinguish the title area */
+       border-radius: 6px; /* Optional: Add rounded corners for a modern look */
+       border: 1px solid #969696; 
+       box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25); /* Subtle shadow for a more professional look */
+    }
+     
+     .header-title {
+      font-size: 16px;
+      font-weight: 400;
+      color: #000000;
+      padding-left: 5px; /* Space after the vertical line */
+     }
+  .menu-container {
+      display: block; /* Align items to the start of the container */
+      position: fixed; /* Ensure the container is positioned correctly */    
+      top: 230px;  /* Aligns to the top of the viewport */
+      left: 0; 
+      width: 250px; /* Match the width of the sidebar-footer */
+      padding: 10px 5px; /* Add padding to give some space around the title */
+      background-color: #fff; /* Light background color to distinguish the title area */
+      border-radius: 8px; /* Optional: Add rounded corners for a modern look */
+      font-family: 'Mulish', sans-serif;
+      z-index: 1050;
+      overflow: auto;
+  }
