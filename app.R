@@ -30,6 +30,7 @@ ui <- dashboardPage(
   fullscreen = FALSE,
   scrollToTop = TRUE,
   dashboardHeader(
+    fixed = TRUE,
     sidebarIcon = NULL,
     title = dashboardBrand(
       title = tags$div(
