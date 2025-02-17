@@ -54,7 +54,10 @@ ui <- dashboardPage(
       class = "menu-container",
     sidebarMenu(
       menuItem("Retirement Calculator", tabName = "retirementCalculator", icon = icon("piggy-bank")),
-      menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("percent"))
+      menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("percent")),
+      menuItem("Personal Investment Calculator", tabName = "personalCalculator", icon = icon("piggy-bank")),
+      menuItem("Financial Planning Calculator", tabName = "financialCalculator", icon = icon("percent")),
+      menuItem("Estate Planning Calculator", tabName = "estateCalculator", icon = icon("percent"))
     )
    )
   ),
@@ -70,11 +73,23 @@ ui <- dashboardPage(
     tabItems(
       tabItem(tabName = "retirementCalculator",
               # Call the module UI with an ID (e.g., "retirement")
-              retirementCalcUI("retirement")
+              retirementCalcUI("retirementCalculator")
       ),
       tabItem(tabName = "irrCalculator",
               # Call the module UI with an ID (e.g., "irr")
-              irrCalcUI("irr")
+              irrCalcUI("irrCalculator")
+      ),
+      tabItem(tabName = "personalCalculator",
+              # call the module UI with an ID (e.g., "personalInvestmentCalculator")
+              personalInvestmentCalcUI("personalInvestmentCalculator")
+      ),
+      tabItem(tabName = "financialCalculator",
+              # call the module UI with an ID (e.g., "financialPlanningCalculator")
+              financialPlanningCalcUI("financialPlanningCalculator")
+      ),
+      tabItem(tabName = "estateCalculator",
+              # call the module UI with an ID (e.g., "estatePlanningCalculator")
+              estatePlanningCalcUI("estatePlanningCalculator")
       )
     )
   )
@@ -83,8 +98,11 @@ ui <- dashboardPage(
 # Define the server logic
 server <- function(input, output, session) {
   # Call the module server with an ID (e.g., "retirement")
-  retirementCalcServer("retirement")
-  irrCalcServer("irr")
+  retirementCalcServer("retirementCalculator")
+  irrCalcServer("irrCalculator")
+  personalInvestmentCalcServer("personalInvestmentCalculator")
+  financialPlanningCalcServer("financialPlanningCalculator")
+  estatePlanningCalcServer("estatePlanningCalculator")
 }
 
 # Run the Shiny app
