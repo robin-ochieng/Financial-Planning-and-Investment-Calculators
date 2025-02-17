@@ -4,6 +4,14 @@ retirementCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
     fluidRow(
+      column(
+        width = 12,
+        div(
+          h2("Retirement Calculator", class = "page-title")
+        )
+      )
+    ),
+    fluidRow(
       box(
         title = "Personal Details",
         textInput(ns("current_age"), "Your current age", "35"),
@@ -30,14 +38,14 @@ retirementCalcUI <- function(id) {
     ),
     # Action button and plot output also use the namespace
     actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 10px;"),
-    plotOutput(ns("savingsPlot"))
+    plotlyOutput(ns("savingsPlot"))
   )
 }
 
 retirementCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
 
-  output$savingsPlot <- renderPlot({
+  output$savingsPlot <- renderPlotly({
     # Convert input values to numeric
     current_age <- as.numeric(input$current_age)
     retirement_age <- as.numeric(input$retirement_age)
@@ -61,11 +69,16 @@ retirementCalcServer <- function(id) {
     # Create a data frame for plotting
     df <- data.frame(Age = years, Savings = savings)
     
-    # Generate the savings projection plot
-    ggplot(df, aes(x = Age, y = Savings)) +
-      geom_line(color = "blue", size = 1.2) +
-      labs(title = "Retirement Savings Projection", x = "Age", y = "Savings (KES)") +
-      theme_minimal()
+    # Generate the savings projection plot using Plotly
+    plot_ly(df, x = ~Age, y = ~Savings, type = "scatter", mode = "lines",
+            line = list(color = "#2c3e50", width = 3)) %>%
+      layout(title = list(text = "Retirement Savings Projection", font = list(size = 15, color = "#2c3e50")),
+            xaxis = list(title = "Age", showgrid = FALSE, zeroline = FALSE),
+            yaxis = list(title = "Savings (KES)", showgrid = TRUE, zeroline = FALSE),
+            hovermode = "x unified",
+            plot_bgcolor = "white",
+            paper_bgcolor = "white")
+
   })
     
 
