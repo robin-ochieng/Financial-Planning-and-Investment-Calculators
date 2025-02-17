@@ -9,6 +9,9 @@ library(lubridate)
 
 source("modules/retirementCalculator.R")
 source("modules/irrCalculator.R")
+source("modules/personalInvestmentCalculator.R")
+source("modules/financialPlanningCalculator.R")
+source("modules/estatePlanningCalculator.R")
 
 # Define a custom theme using bslib
 my_theme <- bs_theme(
