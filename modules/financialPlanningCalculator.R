@@ -68,6 +68,15 @@ financialPlanningCalcUI <- function(id) {
 financialPlanningCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     
+    comma_format <- function(accuracy = 1) {
+        function(x) {
+            # Round the value based on the given accuracy
+            x <- round(x, digits = accuracy)
+            # Format the numbers with commas as thousand separators
+            format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
+        }
+        }
+
     ### Accumulation Phase Calculations ###
     accData <- eventReactive(input$update, {
       years <- 0:input$accYears
@@ -97,7 +106,7 @@ financialPlanningCalcServer <- function(id) {
       ggplot(df, aes(x = Year)) +
         geom_line(aes(y = Nominal, color = "Nominal Value (KES)"), size = 1.2) +
         geom_line(aes(y = Real, color = "Real Value (KES, Adjusted)"), size = 1.2, linetype = "dashed") +
-        scale_y_continuous(labels = comma_format(accuracy = 1)) +
+        scale_y_continuous(labels = comma_format(accuracy = 0)) +
         labs(title = "Accumulation Phase Projection", y = "Portfolio Value (KES)", color = "Legend") +
         theme_minimal()
     })
@@ -136,7 +145,7 @@ financialPlanningCalcServer <- function(id) {
       ggplot(df, aes(x = Year)) +
         geom_line(aes(y = Portfolio, color = "Portfolio Balance (KES)"), size = 1.2) +
         geom_line(aes(y = Withdrawal, color = "Annual Withdrawal (KES)"), size = 1.2, linetype = "dashed") +
-        scale_y_continuous(labels = comma_format(accuracy = 1)) +
+        scale_y_continuous(labels = comma_format(accuracy = 0)) +
         labs(title = "Withdrawal Phase Projection", y = "Amount (KES)", color = "Legend") +
         theme_minimal()
     })
