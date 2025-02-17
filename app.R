@@ -2,6 +2,10 @@ library(shiny)
 library(bs4Dash)
 library(ggplot2)
 library(bslib)
+library(plotly)
+library(DT)
+library(dplyr)
+library(lubridate)
 
 source("modules/retirementCalculator.R")
 source("modules/irrCalculator.R")
@@ -49,8 +53,8 @@ ui <- dashboardPage(
     tags$div(
       class = "menu-container",
     sidebarMenu(
-      menuItem("Retirement Calculator", tabName = "retirementCalculator", icon = icon("user")),
-      menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("user"))
+      menuItem("Retirement Calculator", tabName = "retirementCalculator", icon = icon("piggy-bank")),
+      menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("percent"))
     )
    )
   ),
@@ -70,7 +74,7 @@ ui <- dashboardPage(
       ),
       tabItem(tabName = "irrCalculator",
               # Call the module UI with an ID (e.g., "irr")
-              
+              irrCalcUI("irr")
       )
     )
   )
@@ -80,6 +84,7 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   # Call the module server with an ID (e.g., "retirement")
   retirementCalcServer("retirement")
+  irrCalcServer("irr")
 }
 
 # Run the Shiny app
