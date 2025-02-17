@@ -28,6 +28,7 @@ my_theme <- bs_theme(
 )
 
 
+
 # Define the UI
 ui <- dashboardPage(
   title = "Financial & Retirement Planning Workbench",
@@ -57,10 +58,10 @@ ui <- dashboardPage(
       class = "menu-container",
     sidebarMenu(
       menuItem("Retirement Calculator", tabName = "retirementCalculator", icon = icon("piggy-bank")),
-      menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("percent")),
-      menuItem("Personal Investment Calculator", tabName = "personalCalculator", icon = icon("piggy-bank")),
-      menuItem("Financial Planning Calculator", tabName = "financialCalculator", icon = icon("percent")),
-      menuItem("Estate Planning Calculator", tabName = "estateCalculator", icon = icon("percent"))
+      menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("chart-line")),
+      menuItem("Personal Investment Calculator", tabName = "personalCalculator", icon = icon("wallet")),
+      menuItem("Financial Planning Calculator", tabName = "financialCalculator", icon = icon("calculator")),
+      menuItem("Estate Planning Calculator", tabName = "estateCalculator", icon = icon("gavel"))
     )
    )
   ),
