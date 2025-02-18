@@ -27,8 +27,6 @@ my_theme <- bs_theme(
   navbar_fg = "#ffffff"  
 )
 
-
-
 # Define the UI
 ui <- dashboardPage(
   title = "Financial & Retirement Planning Workbench",
@@ -99,15 +97,18 @@ ui <- dashboardPage(
   )
 )
 
+
 # Define the server logic
 server <- function(input, output, session) {
+  
   # Call the module server with an ID (e.g., "retirement")
   retirementCalcServer("retirementCalculator")
   irrCalcServer("irrCalculator")
   personalInvestmentCalcServer("personalInvestmentCalculator")
   financialPlanningCalcServer("financialPlanningCalculator")
   estatePlanningCalcServer("estatePlanningCalculator")
-}
+
+  }
 
 # Run the Shiny app
 shinyApp(ui, server)
