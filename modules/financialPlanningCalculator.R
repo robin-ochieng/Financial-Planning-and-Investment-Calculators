@@ -4,6 +4,14 @@
 financialPlanningCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
+    fluidRow(
+      column(
+        width = 12,
+        div(
+          h2("Financial Planning Calculator", class = "page-title")
+        )
+      )
+    ),
     # Input Parameters in a collapsible card
     fluidRow(
       bs4Card(
