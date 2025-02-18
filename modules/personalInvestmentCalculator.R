@@ -4,6 +4,14 @@ personalInvestmentCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
     fluidRow(
+      column(
+        width = 12,
+        div(
+          h2("Personal Investment Calculator", class = "page-title")
+        )
+      )
+    ),
+    fluidRow(
       box(
         title = "Investment Inputs", status = "primary", solidHeader = TRUE, width = 4,
         numericInput(ns("initial"), "Initial Investment (KES):", value = 100000, min = 0, step = 1000),
