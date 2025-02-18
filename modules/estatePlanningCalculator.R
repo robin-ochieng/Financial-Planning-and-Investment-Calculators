@@ -3,6 +3,14 @@
 estatePlanningCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
+    fluidRow(
+      column(
+        width = 12,
+        div(
+          h2("Estate Planning Calculator", class = "page-title")
+        )
+      )
+    ),
     # Row 1: Assets & Liabilities
     fluidRow(
       bs4Card(
