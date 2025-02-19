@@ -23,16 +23,16 @@ financialPlanningCalcUI <- function(id) {
         fluidRow(
           column(width = 6,
                  h4("Accumulation Phase Inputs"),
-                 numericInput(ns("initial"), "Initial Investment (KES):", value = 1000000, min = 0, step = 10000),
-                 numericInput(ns("annual"), "Annual Contribution (KES):", value = 500000, min = 0, step = 10000),
+                 autonumericInput(inputId = ns("initial"),  label = "Initial Investment (KES):",  value = 1000000, decimalPlaces = 0, digitGroupSeparator = ","),
+                 autonumericInput(inputId = ns("annual"),  label = "Annual Contribution (KES):",  value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
                  numericInput(ns("accYears"), "Years to Retirement:", value = 30, min = 1, step = 1),
                  numericInput(ns("accRate"), "Annual Return Rate (%):", value = 10, min = 0, step = 0.1),
                  numericInput(ns("accInflation"), "Annual Inflation Rate (%):", value = 5, min = 0, step = 0.1)
           ),
           column(width = 6,
                  h4("Withdrawal Phase Inputs"),
-                 numericInput(ns("retPortfolio"), "Retirement Portfolio (KES):", value = 5000000, min = 0, step = 10000),
-                 numericInput(ns("withdrawal"), "Initial Annual Withdrawal (KES):", value = 400000, min = 0, step = 10000),
+                 autonumericInput(inputId = ns("retPortfolio"),  label = "Retirement Portfolio (KES):",  value = 5000000, decimalPlaces = 0, digitGroupSeparator = ","),
+                 autonumericInput(inputId = ns("withdrawal"),  label = "Initial Annual Withdrawal (KES):",  value = 400000, decimalPlaces = 0, digitGroupSeparator = ","),
                  numericInput(ns("retYears"), "Years in Retirement:", value = 25, min = 1, step = 1),
                  numericInput(ns("retRate"), "Annual Return Rate in Retirement (%):", value = 8, min = 0, step = 0.1),
                  numericInput(ns("retInflation"), "Annual Inflation Rate (%):", value = 5, min = 0, step = 0.1)
