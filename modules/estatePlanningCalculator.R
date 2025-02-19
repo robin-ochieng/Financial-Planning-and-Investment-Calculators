@@ -19,12 +19,12 @@ estatePlanningCalcUI <- function(id) {
         width = 6,
         solidHeader = TRUE,
         collapsible = TRUE,
-        numericInput(ns("real_estate"), "Real Estate (KES):", value = 10000000, min = 0, step = 100000),
-        numericInput(ns("investments"), "Investments (KES):", value = 5000000, min = 0, step = 100000),
-        numericInput(ns("bank_savings"), "Bank Savings (KES):", value = 3000000, min = 0, step = 100000),
-        numericInput(ns("business"), "Business Interests (KES):", value = 8000000, min = 0, step = 100000),
-        numericInput(ns("personal_property"), "Personal Property (KES):", value = 2000000, min = 0, step = 100000),
-        numericInput(ns("other_assets"), "Other Assets (KES):", value = 1000000, min = 0, step = 100000)
+        autonumericInput(inputId = ns("real_estate"),  label = "Real Estate (KES):",  value = 10000000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("investments"),  label = "Investments (KES):",  value = 5000000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("bank_savings"),  label = "Bank Savings (KES):",  value = 3000000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("business"),  label = "Business Interests (KES):",  value = 8000000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("personal_property"),  label = "Personal Property (KES):",  value = 2000000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("other_assets"),  label = "Other Assets (KES):",  value = 1000000, decimalPlaces = 0, digitGroupSeparator = ",")
       ),
       bs4Card(
         title = "Liabilities",
@@ -33,10 +33,10 @@ estatePlanningCalcUI <- function(id) {
         height = "555px",
         solidHeader = TRUE,
         collapsible = TRUE,
-        numericInput(ns("mortgages"), "Mortgages (KES):", value = 4000000, min = 0, step = 100000),
-        numericInput(ns("loans"), "Loans (KES):", value = 2000000, min = 0, step = 100000),
-        numericInput(ns("credit_cards"), "Credit Card Debts (KES):", value = 200000, min = 0, step = 10000),
-        numericInput(ns("other_liabilities"), "Other Liabilities (KES):", value = 500000, min = 0, step = 10000)
+        autonumericInput(inputId = ns("mortgages"),  label = "Mortgages (KES):",  value = 4000000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("loans"),  label = "Loans (KES):",  value = 2000000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("credit_cards"),  label = "Credit Card Debts (KES):",  value = 200000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("other_liabilities"),  label = "Other Liabilities (KES):",  value = 500000, decimalPlaces = 0, digitGroupSeparator = ",")
       )
     ),
     # Row 2: Deductions & Beneficiary Distribution
@@ -47,10 +47,10 @@ estatePlanningCalcUI <- function(id) {
         width = 6,
         solidHeader = TRUE,
         collapsible = TRUE,
-        numericInput(ns("funeral_expenses"), "Funeral Expenses (KES):", value = 500000, min = 0, step = 10000),
-        numericInput(ns("estate_duty_rate"), "Estate Duty Rate (%):", value = 25, min = 0, step = 0.1),
-        numericInput(ns("estate_duty_exemption"), "Estate Duty Exemption (KES):", value = 5000000, min = 0, step = 100000),
-        numericInput(ns("other_deductions"), "Other Deductions (KES):", value = 300000, min = 0, step = 10000)
+        autonumericInput(inputId = ns("funeral_expenses"),  label = "Funeral Expenses (KES):",  value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("estate_duty_rate"),  label = "Estate Duty Rate (%):", value = 25,  decimalPlaces = 1,  digitGroupSeparator = ",",  minimumValue = "0"),
+        autonumericInput(inputId = ns("estate_duty_exemption"),  label = "Estate Duty Exemption (KES):",  value = 5000000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("other_deductions"),  label = "Other Deductions (KES):",  value = 300000, decimalPlaces = 0, digitGroupSeparator = ",")
       ),
       bs4Card(
         title = "Beneficiary Distribution (%)",
@@ -69,7 +69,7 @@ estatePlanningCalcUI <- function(id) {
       column(
         width = 12,
         align = "center",
-        actionButton(ns("calculate"), "Calculate Estate Plan", class = "btn-success control-button") 
+        actionButton(ns("calculate"), "Calculate Estate Plan", class = "btn-success control-button", style = "margin-bottom: 15px;") 
       )
     ),
     # Row 4: Estate Summary Output
