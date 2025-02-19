@@ -30,6 +30,7 @@ estatePlanningCalcUI <- function(id) {
         title = "Liabilities",
         status = "danger",
         width = 6,
+        height = "555px",
         solidHeader = TRUE,
         collapsible = TRUE,
         numericInput(ns("mortgages"), "Mortgages (KES):", value = 4000000, min = 0, step = 100000),
@@ -54,6 +55,7 @@ estatePlanningCalcUI <- function(id) {
       bs4Card(
         title = "Beneficiary Distribution (%)",
         status = "info",
+        height = "385px",
         width = 6,
         solidHeader = TRUE,
         collapsible = TRUE,
@@ -67,7 +69,7 @@ estatePlanningCalcUI <- function(id) {
       column(
         width = 12,
         align = "center",
-        actionButton(ns("calculate"), "Calculate Estate Plan", class = "btn-success")
+        actionButton(ns("calculate"), "Calculate Estate Plan", class = "btn-success control-button") 
       )
     ),
     # Row 4: Estate Summary Output
