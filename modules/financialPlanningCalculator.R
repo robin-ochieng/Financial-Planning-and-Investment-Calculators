@@ -16,7 +16,8 @@ financialPlanningCalcUI <- function(id) {
     fluidRow(
       bs4Card(
         title = "Input Parameters",
-        status = "primary",
+        status = "white",
+        solidHeader = TRUE,
         width = 12,
         collapsible = TRUE,
         fluidRow(
@@ -39,7 +40,7 @@ financialPlanningCalcUI <- function(id) {
         ),
         fluidRow(
           column(width = 12, align = "center",
-                 actionButton(ns("update"), "Update Projections", class = "btn-primary")
+                 actionButton(ns("update"), "Update Projections", class = "btn-primary control-button")
           )
         )
       )
@@ -49,10 +50,11 @@ financialPlanningCalcUI <- function(id) {
       column(width = 6,
              bs4Card(
                title = "Accumulation Phase",
-               status = "info",
+               status = "white",
+               solidHeader = TRUE,
                width = 12,
                tabsetPanel(
-                 tabPanel("Plot", plotOutput(ns("accPlot"), height = "400px")),
+                 tabPanel("Plot", plotlyOutput(ns("accPlot"), height = "400px")),
                  tabPanel("Data Table", tableOutput(ns("accTable")))
                )
              )
@@ -60,10 +62,11 @@ financialPlanningCalcUI <- function(id) {
       column(width = 6,
              bs4Card(
                title = "Withdrawal Phase",
-               status = "info",
+               status = "white",
+               solidHeader = TRUE,
                width = 12,
                tabsetPanel(
-                 tabPanel("Plot", plotOutput(ns("retPlot"), height = "400px")),
+                 tabPanel("Plot", plotlyOutput(ns("retPlot"), height = "400px")),
                  tabPanel("Data Table", tableOutput(ns("retTable")))
                )
              )
@@ -109,16 +112,27 @@ financialPlanningCalcServer <- function(id) {
       data.frame(Year = years, Nominal = nominal, Real = real)
     }, ignoreNULL = FALSE)
     
-    output$accPlot <- renderPlot({
+
+    output$accPlot <- renderPlotly({
       df <- accData()
-      ggplot(df, aes(x = Year)) +
-        geom_line(aes(y = Nominal, color = "Nominal Value (KES)"), size = 1.2) +
-        geom_line(aes(y = Real, color = "Real Value (KES, Adjusted)"), size = 1.2, linetype = "dashed") +
-        scale_y_continuous(labels = comma_format(accuracy = 0)) +
-        labs(title = "Accumulation Phase Projection", y = "Portfolio Value (KES)", color = "Legend") +
-        theme_minimal()
+      # Create Plotly plot with two lines for nominal and real values
+      plot_ly(data = df) %>%
+        add_lines(x = ~Year, y = ~Nominal, 
+                  line = list(color = "blue", width = 2),
+                  name = "Nominal Value (KES)") %>%
+        add_lines(x = ~Year, y = ~Real, 
+                  line = list(color = "red", width = 2, dash = "dash"),
+                  name = "Real Value (KES, Adjusted)") %>%
+        layout(title = list(text = "Accumulation Phase Projection"),
+              xaxis = list(title = "Year"),
+              yaxis = list(title = "Portfolio Value (KES)", 
+                            tickformat = ",.0f"),  # Format y-axis with commas for thousands
+              legend = list(title = list(text = "Legend")),
+              margin = list(l = 50, r = 50, b = 50, t = 50, pad = 4),
+              font = list(size = 12))
     })
-    
+
+
     output$accTable <- renderTable({
       df <- accData()
       data.frame(
@@ -148,16 +162,25 @@ financialPlanningCalcServer <- function(id) {
       data.frame(Year = years, Portfolio = portfolio, Withdrawal = withdrawal)
     }, ignoreNULL = FALSE)
     
-    output$retPlot <- renderPlot({
+    output$retPlot <- renderPlotly({
       df <- retData()
-      ggplot(df, aes(x = Year)) +
-        geom_line(aes(y = Portfolio, color = "Portfolio Balance (KES)"), size = 1.2) +
-        geom_line(aes(y = Withdrawal, color = "Annual Withdrawal (KES)"), size = 1.2, linetype = "dashed") +
-        scale_y_continuous(labels = comma_format(accuracy = 0)) +
-        labs(title = "Withdrawal Phase Projection", y = "Amount (KES)", color = "Legend") +
-        theme_minimal()
+      # Create Plotly plot with two lines for portfolio balance and annual withdrawal
+      plot_ly(data = df) %>%
+        add_lines(x = ~Year, y = ~Portfolio, 
+                  line = list(color = "green", width = 2),
+                  name = "Portfolio Balance (KES)") %>%
+        add_lines(x = ~Year, y = ~Withdrawal, 
+                  line = list(color = "purple", width = 2, dash = "dash"),
+                  name = "Annual Withdrawal (KES)") %>%
+        layout(title = list(text = "Withdrawal Phase Projection"),
+              xaxis = list(title = "Year"),
+              yaxis = list(title = "Amount (KES)", 
+                            tickformat = ",.0f"),  # Format y-axis with commas for thousands
+              legend = list(title = list(text = "Legend")),
+              margin = list(l = 50, r = 50, b = 50, t = 50, pad = 4),
+              font = list(size = 12))
     })
-    
+
     output$retTable <- renderTable({
       df <- retData()
       data.frame(
