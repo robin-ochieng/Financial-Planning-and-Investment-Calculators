@@ -6,6 +6,7 @@ library(plotly)
 library(DT)
 library(dplyr)
 library(lubridate)
+library(shinyWidgets)
 
 source("modules/retirementCalculator.R")
 source("modules/irrCalculator.R")
