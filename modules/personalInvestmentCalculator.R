@@ -13,21 +13,21 @@ personalInvestmentCalcUI <- function(id) {
     ),
     fluidRow(
       box(
-        title = "Investment Inputs", status = "primary", solidHeader = TRUE, width = 4,
+        title = "Investment Inputs", status = "white", solidHeader = TRUE, width = 4,
         numericInput(ns("initial"), "Initial Investment (KES):", value = 100000, min = 0, step = 1000),
         numericInput(ns("contribution"), "Monthly Contribution (KES):", value = 10000, min = 0, step = 1000),
         numericInput(ns("rate"), "Annual Interest Rate (%):", value = 8, min = 0, step = 0.1),
         numericInput(ns("years"), "Investment Duration (years):", value = 10, min = 1, step = 1),
-        actionButton(ns("calculate"), "Calculate", class = "btn-success")
+        actionButton(ns("calculate"), "Calculate", class = "btn-success control-button") 
       ),
       box(
-        title = "Results", status = "success", solidHeader = TRUE, width = 8,
-        plotOutput(ns("growthPlot"))
+        title = "Results", status = "white", solidHeader = TRUE, width = 8,
+        plotlyOutput(ns("growthPlot"))
       )
     ),
     fluidRow(
       box(
-        title = "Summary Table", status = "success", solidHeader = TRUE, width = 12,
+        title = "Summary Table", status = "white", solidHeader = TRUE, width = 12,
         dataTableOutput(ns("summaryTable"))
       )
     )
@@ -55,15 +55,24 @@ personalInvestmentCalcServer <- function(id) {
     data.frame(Month = 1:months, Balance = balance) %>%
       mutate(Balance = paste0("KES ", formatC(Balance, format = "f", big.mark = ",", digits = 0)))
   })
-  
-  output$growthPlot <- renderPlot({
-    df <- calculate_investment()
-    df$Balance <- as.numeric(gsub("KES ", "", gsub(",", "", df$Balance)))
-    ggplot(df, aes(x = Month, y = Balance)) +
-      geom_line(color = "blue", size = 1) +
-      labs(title = "Investment Growth Over Time", x = "Months", y = "Balance (KES)") +
-      theme_minimal()
-  })
+
+  output$growthPlot <- renderPlotly({
+  df <- calculate_investment()
+  # Clean up the Balance column
+  df$Balance <- as.numeric(gsub("KES ", "", gsub(",", "", df$Balance)))
+  # Create the Plotly plot
+  plot_ly(data = df, 
+          x = ~Month, 
+          y = ~Balance,
+          type = 'scatter', 
+          mode = 'lines',
+          line = list(color = 'blue', width = 2)) %>%
+    layout(title = list(text = "Investment Growth Over Time"),
+           xaxis = list(title = "Months"),
+           yaxis = list(title = "Balance (KES)"),
+           font = list(size = 12),
+           margin = list(l = 50, r = 50, b = 50, t = 50, pad = 4))
+})
   
   output$summaryTable <- renderDataTable({
     df <- calculate_investment()
