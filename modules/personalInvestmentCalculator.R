@@ -14,8 +14,8 @@ personalInvestmentCalcUI <- function(id) {
     fluidRow(
       box(
         title = "Investment Inputs", status = "white", solidHeader = TRUE, width = 4,
-        numericInput(ns("initial"), "Initial Investment (KES):", value = 100000, min = 0, step = 1000),
-        numericInput(ns("contribution"), "Monthly Contribution (KES):", value = 10000, min = 0, step = 1000),
+        autonumericInput(inputId = ns("initial"),  label = "Initial Investment (KES):",  value = 100000, decimalPlaces = 0, digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("contribution"),  label = "Monthly Contribution (KES):",  value = 10000, decimalPlaces = 0, digitGroupSeparator = ","),
         numericInput(ns("rate"), "Annual Interest Rate (%):", value = 8, min = 0, step = 0.1),
         numericInput(ns("years"), "Investment Duration (years):", value = 10, min = 1, step = 1),
         actionButton(ns("calculate"), "Calculate", class = "btn-success control-button") 
