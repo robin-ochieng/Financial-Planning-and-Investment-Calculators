@@ -208,8 +208,7 @@ irrCalcServer <- function(id) {
             "Note: This calculator is provided as a guide and illustration. The values shown are based 
              on assumptions and your inputs. The values are shown in future terms and do not consider 
              the effect of inflation. Actual future values will be based on actual future experience 
-             and will differ from these projections. The values are gross of tax and fees. Tax at the 
-             rates applicable will be deducted at the point of accessing your benefit. We will not 
+             and will differ from these projections. We will not 
              be held responsible for your reliance on this calculator for your financial planning. 
              We recommend that you speak to a financial adviser and review your retirement plan 
              regularly to ensure you meet your goals."
