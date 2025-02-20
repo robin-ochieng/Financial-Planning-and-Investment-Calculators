@@ -51,8 +51,7 @@
       background-color: #fff; /* Light background color to distinguish the title area */
       border-radius: 8px; /* Optional: Add rounded corners for a modern look */
       font-family: 'Mulish', sans-serif;
-      z-index: 1050;
-      overflow: auto;
+      z-index: 1050; /* Ensure the container is above the sidebar */
   }
 
   /* Style the clock container */
