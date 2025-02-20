@@ -64,7 +64,7 @@ ui <- dashboardPage(
       menuItem("Estate Planning Calculator", tabName = "estateCalculator", icon = icon("gavel"))
     )
    )
-  ),
+  ), 
   dashboardBody(
     tags$head(
       includeCSS("www/css/custom_styles.css"),      
