@@ -37,7 +37,7 @@ retirementCalcUI <- function(id) {
       )
     ),
     # Action button and plot output also use the namespace
-    actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 10px;"),
+    actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 20px;"),
     plotlyOutput(ns("savingsPlot"))
   )
 }
