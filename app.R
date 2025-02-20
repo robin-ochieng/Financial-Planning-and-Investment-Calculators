@@ -37,20 +37,21 @@ ui <- dashboardPage(
   fullscreen = FALSE,
   scrollToTop = TRUE,
   dashboardHeader(
-    fixed = TRUE,
-    sidebarIcon = NULL,
-    title = dashboardBrand(
-      title = tags$div(
-        class = "text-center header-title-container",
-        tags$h4("Financial & Retirement Planning Workbench", class = "header-title")
-      )
-    ),
-    tags$li(
-      class = "clock-container",
-    tags$span(
-      id = "dynamic-clock"
-      ),
-    )
+    disable = TRUE,
+    fixed = FALSE,
+    sidebarIcon = NULL
+    #title = dashboardBrand(
+    #  title = tags$div(
+    #    class = "text-center header-title-container",
+    #    tags$h4("Financial & Retirement Planning Workbench", class = "header-title")
+    #  )
+    #),
+    #tags$li(
+    #  class = "clock-container",
+    #tags$span(
+     # id = "dynamic-clock"
+     # ),
+   # )
   ),
   dashboardSidebar(
     tags$div(
