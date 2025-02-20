@@ -11,8 +11,7 @@ irrCalcUI <- function(id) {
           h2("IRR Calculator", class = "page-title"),
 
           # Additional heading & paragraph
-          h3("ARE YOU ON YOUR WAY TO A COMFORTABLE RETIREMENT?", 
-             style = "background-color: #FFFFFF; color: #000000; padding: 10px;"),
+          h4("ARE YOU ON YOUR WAY TO A COMFORTABLE RETIREMENT?"),
           p("In order to retire comfortably, a typical rule of thumb is that you will 
              need to replace 75% of your pre-retirement income. The purpose of this tool 
              is to enable you to assess whether you are on track to achieve this target.",
