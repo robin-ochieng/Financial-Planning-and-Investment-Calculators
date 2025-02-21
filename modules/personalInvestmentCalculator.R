@@ -7,13 +7,16 @@ personalInvestmentCalcUI <- function(id) {
       column(
         width = 12,
         div(
-          h2("Personal Investment Calculator", class = "page-title")
+          h2("Personal Investment Calculator", class = "page-title"),
+          p("Use this calculator to estimate the growth of your investment over time. Enter your initial investment, monthly contribution, annual interest rate, and investment duration to get started.",
+            style = "margin-top: 10px;")
         )
       )
     ),
     fluidRow(
       box(
-        title = "Investment Inputs", status = "white", solidHeader = TRUE, width = 4,
+        status = "secondary",
+        title = "Investment Inputs", width = 4,
         autonumericInput(inputId = ns("initial"),  label = "Initial Investment (KES):",  value = 100000, decimalPlaces = 0, digitGroupSeparator = ","),
         autonumericInput(inputId = ns("contribution"),  label = "Monthly Contribution (KES):",  value = 10000, decimalPlaces = 0, digitGroupSeparator = ","),
         numericInput(ns("rate"), "Annual Interest Rate (%):", value = 8, min = 0, step = 0.1),
@@ -21,13 +24,13 @@ personalInvestmentCalcUI <- function(id) {
         actionButton(ns("calculate"), "Calculate", class = "btn-success control-button") 
       ),
       box(
-        title = "Results", status = "white", solidHeader = TRUE, width = 8,
+        title = "Results", status = "secondary", width = 8,
         plotlyOutput(ns("growthPlot"))
       )
     ),
     fluidRow(
       box(
-        title = "Summary Table", status = "white", solidHeader = TRUE, width = 12,
+        title = "Summary Table", status = "secondary", width = 12,
         dataTableOutput(ns("summaryTable"))
       )
     )
@@ -54,7 +57,7 @@ personalInvestmentCalcServer <- function(id) {
     
     data.frame(Month = 1:months, Balance = balance) %>%
       mutate(Balance = paste0("KES ", formatC(Balance, format = "f", big.mark = ",", digits = 0)))
-  })
+  }, ignoreInit = FALSE, ignoreNULL = FALSE)
 
   output$growthPlot <- renderPlotly({
   df <- calculate_investment()
