@@ -8,41 +8,68 @@ financialPlanningCalcUI <- function(id) {
       column(
         width = 12,
         div(
-          h2("Financial Planning Calculator", class = "page-title")
+          h2("Financial Planning Calculator", class = "page-title"),
+          p("Use this calculator to project your portfolio value during the accumulation phase and the withdrawal phase of your financial plan. Enter your initial investment, annual contribution, return rates, and inflation rates to get started.",
+            style = "margin-top: 10px;")
         )
       )
     ),
     # Input Parameters in a collapsible card
     fluidRow(
       bs4Card(
-        title = "Input Parameters",
-        status = "white",
-        solidHeader = TRUE,
-        width = 12,
+        title = "Accumulation Phase Inputs",
+        status = "secondary",
+        width = 6,
         collapsible = TRUE,
-        fluidRow(
-          column(width = 6,
-                 h4("Accumulation Phase Inputs"),
-                 autonumericInput(inputId = ns("initial"),  label = "Initial Investment (KES):",  value = 1000000, decimalPlaces = 0, digitGroupSeparator = ","),
-                 autonumericInput(inputId = ns("annual"),  label = "Annual Contribution (KES):",  value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
-                 numericInput(ns("accYears"), "Years to Retirement:", value = 30, min = 1, step = 1),
-                 numericInput(ns("accRate"), "Annual Return Rate (%):", value = 10, min = 0, step = 0.1),
-                 numericInput(ns("accInflation"), "Annual Inflation Rate (%):", value = 5, min = 0, step = 0.1)
-          ),
-          column(width = 6,
-                 h4("Withdrawal Phase Inputs"),
-                 autonumericInput(inputId = ns("retPortfolio"),  label = "Retirement Portfolio (KES):",  value = 5000000, decimalPlaces = 0, digitGroupSeparator = ","),
-                 autonumericInput(inputId = ns("withdrawal"),  label = "Initial Annual Withdrawal (KES):",  value = 400000, decimalPlaces = 0, digitGroupSeparator = ","),
-                 numericInput(ns("retYears"), "Years in Retirement:", value = 25, min = 1, step = 1),
-                 numericInput(ns("retRate"), "Annual Return Rate in Retirement (%):", value = 8, min = 0, step = 0.1),
-                 numericInput(ns("retInflation"), "Annual Inflation Rate (%):", value = 5, min = 0, step = 0.1)
-          )
-        ),
-        fluidRow(
-          column(width = 12, align = "center",
-                 actionButton(ns("update"), "Update Projections", class = "btn-primary control-button")
-          )
-        )
+        autonumericInput(inputId = ns("initial"),  
+                        label = "Initial Investment (KES):",  
+                        value = 1000000, 
+                        decimalPlaces = 0, 
+                        digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("annual"),  
+                        label = "Annual Contribution (KES):",  
+                        value = 500000, 
+                        decimalPlaces = 0, 
+                        digitGroupSeparator = ","),
+        numericInput(ns("accYears"), 
+                    "Years to Retirement:", 
+                    value = 30, min = 1, step = 1),
+        numericInput(ns("accRate"), 
+                    "Annual Return Rate (%):", 
+                    value = 10, min = 0, step = 0.1),
+        numericInput(ns("accInflation"), 
+                    "Annual Inflation Rate (%):", 
+                    value = 5, min = 0, step = 0.1)
+      ),
+      bs4Card(
+        title = "Withdrawal Phase Inputs",
+        status = "secondary",
+        width = 6,
+        collapsible = TRUE,
+        autonumericInput(inputId = ns("retPortfolio"),  
+                        label = "Retirement Portfolio (KES):",  
+                        value = 5000000, 
+                        decimalPlaces = 0, 
+                        digitGroupSeparator = ","),
+        autonumericInput(inputId = ns("withdrawal"),  
+                        label = "Initial Annual Withdrawal (KES):",  
+                        value = 400000, 
+                        decimalPlaces = 0, 
+                        digitGroupSeparator = ","),
+        numericInput(ns("retYears"), 
+                    "Years in Retirement:", 
+                    value = 25, min = 1, step = 1),
+        numericInput(ns("retRate"), 
+                    "Annual Return Rate in Retirement (%):", 
+                    value = 8, min = 0, step = 0.1),
+        numericInput(ns("retInflation"), 
+                    "Annual Inflation Rate (%):", 
+                    value = 5, min = 0, step = 0.1)
+      )
+    ),
+    fluidRow(
+      column(width = 12, align = "center",
+            actionButton(ns("update"), "Update Projections", class = "btn-primary control-button", style = "margin-bottom: 15px;")
       )
     ),
     # Output Cards: Accumulation and Withdrawal projections
@@ -50,8 +77,7 @@ financialPlanningCalcUI <- function(id) {
       column(width = 6,
              bs4Card(
                title = "Accumulation Phase",
-               status = "white",
-               solidHeader = TRUE,
+               status = "secondary",
                width = 12,
                tabsetPanel(
                  tabPanel("Plot", plotlyOutput(ns("accPlot"), height = "400px")),
@@ -62,8 +88,7 @@ financialPlanningCalcUI <- function(id) {
       column(width = 6,
              bs4Card(
                title = "Withdrawal Phase",
-               status = "white",
-               solidHeader = TRUE,
+               status = "secondary",
                width = 12,
                tabsetPanel(
                  tabPanel("Plot", plotlyOutput(ns("retPlot"), height = "400px")),
@@ -110,7 +135,7 @@ financialPlanningCalcServer <- function(id) {
       }
       
       data.frame(Year = years, Nominal = nominal, Real = real)
-    }, ignoreNULL = FALSE)
+    }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
 
     output$accPlot <- renderPlotly({
