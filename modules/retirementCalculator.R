@@ -7,13 +7,16 @@ retirementCalcUI <- function(id) {
       column(
         width = 12,
         div(
-          h2("Retirement Calculator", class = "page-title")
+          h2("Retirement Calculator", class = "page-title"),
+          p("Are you on track to save enough for retirement? Use our calculator to check your progress, see how much retirement income you'll have and estimate how much more you should save.",
+            style = "margin-top: 10px;")
         )
       )
     ),
     fluidRow(
       box(
         title = "Personal Details",
+        status = "secondary",
         textInput(ns("current_age"), "Your current age", "35"),
         textInput(ns("retirement_age"), "Planned retirement age", "67"),
         textInput(ns("life_expectancy"), "Life expectancy", "85"),
@@ -22,6 +25,7 @@ retirementCalcUI <- function(id) {
       ),
       box(
         title = "Financial Details",
+        status = "secondary",
         textInput(ns("income_growth"), "Annual income increase (%)", "3"),
         textInput(ns("income_needed"), "Income needed after retirement (%)", "75"),
         textInput(ns("investment_return"), "Average investment return (%)", "6"),
@@ -30,6 +34,7 @@ retirementCalcUI <- function(id) {
       ),
       box(
         title = "Savings Details",
+        status = "secondary",
         textInput(ns("other_income"), "Other income after retirement (KES/month)", "0"),
         textInput(ns("current_savings"), "Current retirement savings (KES)", "30000"),
         textInput(ns("future_savings"), "Future savings (% of income)", "10"), 
@@ -37,8 +42,17 @@ retirementCalcUI <- function(id) {
       )
     ),
     # Action button and plot output also use the namespace
-    actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 20px;"),
-    plotlyOutput(ns("savingsPlot"))
+    fluidRow(
+      column(width = 12, align = "center",
+            actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 20px;")
+      )
+    ),
+      box(
+        title = "",
+        status = "secondary",   
+        width = 12, 
+        plotlyOutput(ns("savingsPlot"))
+      )
   )
 }
 
@@ -73,6 +87,7 @@ retirementCalcServer <- function(id) {
     plot_ly(df, x = ~Age, y = ~Savings, type = "scatter", mode = "lines",
             line = list(color = "#2c3e50", width = 3)) %>%
       layout(title = list(text = "Retirement Savings Projection", font = list(size = 15, color = "#2c3e50")),
+            margin = list(t = 50), # Add some margin at the top
             xaxis = list(title = "Age", showgrid = FALSE, zeroline = FALSE),
             yaxis = list(title = "Savings (KES)", showgrid = TRUE, zeroline = FALSE),
             hovermode = "x unified",
