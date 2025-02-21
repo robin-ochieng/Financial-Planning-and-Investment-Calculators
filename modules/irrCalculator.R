@@ -8,23 +8,24 @@ irrCalcUI <- function(id) {
       column(
         width = 12,
         div(
-          h2("IRR Calculator", class = "page-title"),
-
-          # Additional heading & paragraph
-          h4("ARE YOU ON YOUR WAY TO A COMFORTABLE RETIREMENT?"),
-          p("In order to retire comfortably, a typical rule of thumb is that you will 
-             need to replace 75% of your pre-retirement income. The purpose of this tool 
-             is to enable you to assess whether you are on track to achieve this target.",
-            style = "margin-top: 10px;")
+          h2(
+            "Income Replacement Ratio Calculator",
+            class = "page-title",
+          ),
+          p(
+            "Use this calculator to estimate your income replacement ratio at retirement. Enter your personal details, financial information, and investment assumptions to get started.",
+            style = "margin-top: 10px;"
+          )
         )
       )
     ),
     fluidRow(
       box(
-        title = "User Input", status = "white", solidHeader = TRUE, width = 6, height = "760px",
+        status = "success",
+        title = "User Input", width = 6, height = "760px",
         textInput(ns("name"), "Full Name"),
         dateInput(ns("dob"), "Date of Birth", value = Sys.Date() - years(45)),
-        numericInput(ns("retirement_age"), "Normal Retirement Age", value = 60, min = 40, max = 70),
+        numericInput(ns("retirement_age"), "Normal Retirement Age", value = 65, min = 40, max = 70),
         numericInput(ns("contribution_rate"), "Total Contribution Rate (%)", value = 25, min = 0, max = 100),
         numericInput(ns("salary"), "Current Monthly Salary", value = 250000, min = 0),
         numericInput(ns("investment_return"), "Investment Return (%)", value = 11, min = 0, max = 100),
@@ -33,7 +34,7 @@ irrCalcUI <- function(id) {
         actionButton(ns("compute"), "Compute", class = "btn-primary control-button")
       ),
       box(
-        title = "Results", status = "white", solidHeader = TRUE, width = 6, height = "760px",
+        title = "Results", status = "success", width = 6, height = "760px",
         fluidRow(
           style = "margin-bottom: 10px;", 
           # 1) Title text output
@@ -195,7 +196,7 @@ irrCalcServer <- function(id) {
         )
       })
 
-            #---------------------------
+      #---------------------------
       # 5) Disclaimer (displayed when Compute is clicked)
       #---------------------------
       output$disclaimer <- renderUI({
@@ -215,7 +216,7 @@ irrCalcServer <- function(id) {
         )
       })
 
-    })
+    }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
   })
 }
