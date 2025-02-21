@@ -44,7 +44,7 @@
   .menu-container {
       display: block; /* Align items to the start of the container */
       position: fixed; /* Ensure the container is positioned correctly */    
-      top: 230px;  /* Aligns to the top of the viewport */
+      top: 170px;  /* Aligns to the top of the viewport */
       left: 0; 
       width: 250px; /* Match the width of the sidebar-footer */
       padding: 10px 5px; /* Add padding to give some space around the title */
@@ -78,10 +78,14 @@
     font-weight: bold;
     color: #2c3e50;
     margin-bottom: 20px;
+    background-color: #fff; 
+    padding: 10px; 
+    border-radius: 10px;
 }
 
 /* Target the menu item text in the sidebar */
 .nav-sidebar .nav-item > .nav-link > p {
   font-size: 13px !important;
 }
+
 
