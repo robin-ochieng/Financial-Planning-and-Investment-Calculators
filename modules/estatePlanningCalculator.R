@@ -7,7 +7,9 @@ estatePlanningCalcUI <- function(id) {
       column(
         width = 12,
         div(
-          h2("Estate Planning Calculator", class = "page-title")
+          h2("Estate Planning Calculator", class = "page-title"),
+          p("Use this calculator to estimate the value of your estate, calculate estate duty, and distribute your assets among beneficiaries. Enter your assets, liabilities, deductions, and beneficiary distribution to get started.",
+            style = "margin-top: 10px;")
         )
       )
     ),
@@ -17,7 +19,6 @@ estatePlanningCalcUI <- function(id) {
         title = "Assets",
         status = "primary",
         width = 6,
-        solidHeader = TRUE,
         collapsible = TRUE,
         autonumericInput(inputId = ns("real_estate"),  label = "Real Estate (KES):",  value = 10000000, decimalPlaces = 0, digitGroupSeparator = ","),
         autonumericInput(inputId = ns("investments"),  label = "Investments (KES):",  value = 5000000, decimalPlaces = 0, digitGroupSeparator = ","),
@@ -31,7 +32,6 @@ estatePlanningCalcUI <- function(id) {
         status = "danger",
         width = 6,
         height = "555px",
-        solidHeader = TRUE,
         collapsible = TRUE,
         autonumericInput(inputId = ns("mortgages"),  label = "Mortgages (KES):",  value = 4000000, decimalPlaces = 0, digitGroupSeparator = ","),
         autonumericInput(inputId = ns("loans"),  label = "Loans (KES):",  value = 2000000, decimalPlaces = 0, digitGroupSeparator = ","),
@@ -45,7 +45,6 @@ estatePlanningCalcUI <- function(id) {
         title = "Deductions & Estate Duty",
         status = "warning",
         width = 6,
-        solidHeader = TRUE,
         collapsible = TRUE,
         autonumericInput(inputId = ns("funeral_expenses"),  label = "Funeral Expenses (KES):",  value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
         autonumericInput(inputId = ns("estate_duty_rate"),  label = "Estate Duty Rate (%):", value = 25,  decimalPlaces = 1,  digitGroupSeparator = ",",  minimumValue = "0"),
@@ -57,7 +56,6 @@ estatePlanningCalcUI <- function(id) {
         status = "info",
         height = "385px",
         width = 6,
-        solidHeader = TRUE,
         collapsible = TRUE,
         numericInput(ns("spouse_pct"), "Spouse (%):", value = 50, min = 0, max = 100, step = 1),
         numericInput(ns("children_pct"), "Children (%):", value = 30, min = 0, max = 100, step = 1),
@@ -78,7 +76,6 @@ estatePlanningCalcUI <- function(id) {
         title = "Estate Summary",
         status = "success",
         width = 12,
-        solidHeader = TRUE,
         collapsible = TRUE,
         tableOutput(ns("summaryTable")),
         uiOutput(ns("distributionWarning"))
@@ -145,7 +142,7 @@ estatePlanningCalcServer <- function(id) {
     summary_df$Amount_KES <- format(round(summary_df$Amount_KES, 0), big.mark = ",", scientific = FALSE)
     
     list(summary = summary_df, total_pct = total_pct)
-  })
+  }, ignoreInit = FALSE, ignoreNULL = FALSE)
   
   # Render the summary table
   output$summaryTable <- renderTable({
