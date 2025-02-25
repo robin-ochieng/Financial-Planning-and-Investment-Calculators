@@ -148,7 +148,7 @@ server <- function(input, output, session) {
     summary_df$Amount_KES <- format(round(summary_df$Amount_KES, 0), big.mark = ",", scientific = FALSE)
     
     list(summary = summary_df, total_pct = total_pct)
-  })
+  }, ignoreInit = FALSE, ignoreNULL = FALSE)
   
   # Render the summary table
   output$summaryTable <- renderTable({
