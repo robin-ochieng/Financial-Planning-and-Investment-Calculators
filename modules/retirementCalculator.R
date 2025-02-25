@@ -60,6 +60,7 @@ retirementCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
 
   output$savingsPlot <- renderPlotly({
+    
     # Convert input values to numeric
     current_age <- as.numeric(input$current_age)
     retirement_age <- as.numeric(input$retirement_age)
