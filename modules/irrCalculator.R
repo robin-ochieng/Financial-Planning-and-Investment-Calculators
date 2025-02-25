@@ -99,11 +99,11 @@ irrCalcServer <- function(id) {
         ratio_rounded <- round(income_replacement_ratio, 1)  # 1 decimal or as desired
         
         if (income_replacement_ratio < 60) {
-          paste("Your Income Replacement Ratio is Too Low -", paste0(ratio_rounded, "%"))
+          paste("Your Income Replacement Ratio is Too Low: ", paste0(ratio_rounded, "%"))
         } else if (income_replacement_ratio < 80) {
-          paste("Your Income Replacement Ratio is Adequate -", paste0(ratio_rounded, "%"))
+          paste("Your Income Replacement Ratio is Adequate: ", paste0(ratio_rounded, "%"))
         } else {
-          paste("Your Income Replacement Ratio is Sufficient -", paste0(ratio_rounded, "%"))
+          paste("Your Income Replacement Ratio is Sufficient: ", paste0(ratio_rounded, "%"))
         }
       }) 
 
