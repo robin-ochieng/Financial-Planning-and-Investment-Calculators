@@ -47,7 +47,7 @@ server <- function(input, output, session) {
     income_replacement_ratio <- (annual_pension / annual_salary_at_retirement) * 100
     
     output$income_ratio <- renderText({
-      paste("Your Income Replacement Ratio is:", round(income_replacement_ratio, 2), "%")
+      paste(input$name, ", your Income Replacement Ratio is:", round(income_replacement_ratio, 2), "%")
     })
     
     output$progress_bar <- renderPlotly({
