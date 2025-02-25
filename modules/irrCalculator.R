@@ -23,7 +23,7 @@ irrCalcUI <- function(id) {
       box(
         status = "success",
         title = "User Input", width = 6, height = "760px",
-        textInput(ns("name"), "Full Name"),
+        textInput(inputId = ns("name"), label = "Full Name", value = "John Bosco"),
         dateInput(ns("dob"), "Date of Birth", value = Sys.Date() - years(45)),
         numericInput(ns("retirement_age"), "Normal Retirement Age", value = 65, min = 40, max = 70),
         numericInput(ns("contribution_rate"), "Total Contribution Rate (%)", value = 25, min = 0, max = 100),
@@ -99,11 +99,11 @@ irrCalcServer <- function(id) {
         ratio_rounded <- round(income_replacement_ratio, 1)  # 1 decimal or as desired
         
         if (income_replacement_ratio < 60) {
-          paste("Your Income Replacement Ratio is Too Low: ", paste0(ratio_rounded, "%"))
+          paste0(input$name, ", your Income Replacement Ratio is Too Low: ", paste0(ratio_rounded, "%"))
         } else if (income_replacement_ratio < 80) {
-          paste("Your Income Replacement Ratio is Adequate: ", paste0(ratio_rounded, "%"))
+          paste0(input$name, ", your Income Replacement Ratio is Adequate: ", paste0(ratio_rounded, "%"))
         } else {
-          paste("Your Income Replacement Ratio is Sufficient: ", paste0(ratio_rounded, "%"))
+          paste0(input$name, ", your Income Replacement Ratio is Sufficient: ", paste0(ratio_rounded, "%"))
         }
       }) 
 
