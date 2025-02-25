@@ -49,7 +49,7 @@ server <- function(input, output) {
     
     data.frame(Month = 1:months, Balance = balance) %>%
       mutate(Balance = paste0("KES ", formatC(Balance, format = "f", big.mark = ",", digits = 0)))
-  })
+  }, ignoreNULL = FALSE)
   
   output$growthPlot <- renderPlot({
     df <- calculate_investment()
