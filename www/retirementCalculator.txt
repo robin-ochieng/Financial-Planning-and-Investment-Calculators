@@ -1,0 +1,49 @@
+Basic Components:
+Compound Growth: - Each year, the existing savings grow by the investment return rate.
+New Savings Contribution: - Every year, a percentage of the (growing) income is added to the savings.
+
+The formula for each year is:
+
+savings[i] <- savings[i - 1] * (1 + investment_return) + (income * future_savings)
+
+
+income[new] = income[old] × (1+income_growth)
+
+
+    # Convert input values to numeric
+    current_age <- as.numeric(input$current_age)
+    retirement_age <- as.numeric(input$retirement_age)
+    current_savings <- as.numeric(input$current_savings)
+    future_savings <- as.numeric(input$future_savings) / 100  # Convert percentage to decimal
+    income <- as.numeric(input$pre_tax_income)
+    income_growth <- as.numeric(input$income_growth) / 100  
+    investment_return <- as.numeric(input$investment_return) / 100  
+    years <- current_age:retirement_age  # Sequence of years until retirement
+
+
+    # Initialize savings array
+    savings <- numeric(length(years))
+    savings[1] <- current_savings  # Start with current savings
+    
+    # Calculate savings for each year
+    for (i in 2:length(years)) {
+      income <- income * (1 + income_growth)  # Increase income annually
+      savings[i] <- savings[i - 1] * (1 + investment_return) + (income * future_savings)  # Compound growth + new savings
+    }
+    
+    # Create a data frame for plotting
+    df <- data.frame(Age = years, Savings = savings)
+
+
+    plot_ly(df, x = ~Age, y = ~Savings, type = "scatter", mode = "lines",
+            line = list(color = "#2c3e50", width = 3)) %>%
+      layout(title = list(text = "Retirement Savings Projection", font = list(size = 15, color = "#2c3e50")),
+            margin = list(t = 50), # Add some margin at the top
+            xaxis = list(title = "Age", showgrid = FALSE, zeroline = FALSE),
+            yaxis = list(title = "Savings (KES)", showgrid = TRUE, zeroline = FALSE),
+            hovermode = "x unified",
+            plot_bgcolor = "white",
+            paper_bgcolor = "white")
+
+
+
