@@ -39,7 +39,7 @@ irrCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("salary"), "Current Monthly Salary", value = 250000, min = 0),
+          autonumericInput(inputId = ns("salary"), label = "Current Monthly Salary:", value = 250000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter your current monthly salary.",
           placement = "right"
         ),
@@ -59,7 +59,7 @@ irrCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("fund_balance"), "Current Fund Balance", value = 8000000, min = 0),
+          autonumericInput(inputId = ns("fund_balance"), label = "Current Fund Balance:", value = 8000000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter the current balance of your retirement fund.",
           placement = "right"
         )
@@ -68,17 +68,17 @@ irrCalcUI <- function(id) {
         status = "success",
         title = "User Input", width = 6, height = "700px",
         bs4Dash::tooltip(
-          numericInput(ns("social_security"), "Social Security (USD/year)", value = 20000, min = 0),
+          autonumericInput(inputId = ns("social_security"), label = "Social Security (USD/year):", value = 20000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter your expected annual Social Security benefit in USD.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("pension_income"), "Pension (USD/year)", value = 10000, min = 0),
+          autonumericInput(inputId = ns("pension_income"), label = "Pension (USD/year):", value = 10000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter your expected annual pension income in USD.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("savings_withdrawal"), "Retirement Savings Withdrawal (USD/year)", value = 25000, min = 0),
+          autonumericInput(inputId = ns("savings_withdrawal"), label = "Retirement Savings Withdrawal (USD/year):", value = 25000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter the expected annual withdrawal from your retirement savings in USD.",
           placement = "right"
         ),
