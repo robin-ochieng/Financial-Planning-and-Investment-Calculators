@@ -17,87 +17,233 @@ retirementCalcUI <- function(id) {
       box(
         title = "Personal Details",
         status = "secondary",
-        textInput(ns("current_age"), "Your current age", "35"),
-        textInput(ns("retirement_age"), "Planned retirement age", "67"),
-        textInput(ns("life_expectancy"), "Life expectancy", "85"),
-        textInput(ns("pre_tax_income"), "Current pre-tax income (KES)", "70000"), 
+        bs4Dash::tooltip(
+          textInput(ns("current_age"), "Your current age", "35"),
+          title = "Enter your current age in years",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("retirement_age"), "Planned retirement age", "65"),
+          title = "Enter the age at which you plan to retire",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("life_expectancy"), "Life expectancy", "85"),
+          title = "Enter your expected age at the end of life",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("pre_tax_income"), "Current pre-tax income (USD)", "80000"),
+          title = "Enter your annual pre-tax income in USD",
+          placement = "right"
+        ),
         width = 4, height = "400px"
       ),
       box(
         title = "Financial Details",
         status = "secondary",
-        textInput(ns("income_growth"), "Annual income increase (%)", "3"),
-        textInput(ns("income_needed"), "Income needed after retirement (%)", "75"),
-        textInput(ns("investment_return"), "Average investment return (%)", "6"),
-        textInput(ns("inflation_rate"), "Inflation rate (%)", "3"), 
+        bs4Dash::tooltip(
+          textInput(ns("income_growth"), "Annual income increase (%)", "3"),
+          title = "Enter the expected annual percentage increase in your income",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("income_needed"), "Income needed after retirement (%)", "75"),
+          title = "Percentage of your pre-retirement income needed during retirement",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("investment_return"), "Average investment return (%)", "6"),
+          title = "Expected annual return rate on your investments",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("inflation_rate"), "Inflation rate (%)", "2"),
+          title = "Expected annual inflation rate",
+          placement = "right"
+        ),
         width = 4, height = "400px"
       ),
       box(
         title = "Savings Details",
         status = "secondary",
-        textInput(ns("other_income"), "Other income after retirement (KES/month)", "0"),
-        textInput(ns("current_savings"), "Current retirement savings (KES)", "30000"),
-        textInput(ns("future_savings"), "Future savings (% of income)", "10"), 
+        bs4Dash::tooltip(
+          textInput(ns("current_savings"), "Current retirement savings (USD)", "100000"),
+          title = "Amount you have saved for retirement so far in USD",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("future_savings"), "Future savings (% of income)", "10"),
+          title = "Percentage of your income that you plan to save each year",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("other_income"), "Other income after retirement (USD/month)", "0"),
+          title = "Any additional income you expect to receive monthly during retirement",
+          placement = "right"
+        ),
         width = 4, height = "400px"
       )
     ),
-    # Action button and plot output also use the namespace
     fluidRow(
-      column(width = 12, align = "center",
-            actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 20px;")
+      box(
+        title = "Retirement Expenses",
+        status = "secondary",
+        bs4Dash::tooltip(
+          textInput(ns("monthly_expense"), "Monthly retirement expenses (USD)", "3000"),
+          title = "Estimated monthly expenses during retirement for housing, travel, etc.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("healthcare_cost"), "Healthcare costs (USD/year)", "5000"),
+          title = "Estimated annual healthcare costs during retirement",
+          placement = "right"
+        ),
+        width = 6, height = "300px"
+      ),
+      box(
+        title = "Income & Withdrawal Strategy",
+        status = "secondary",
+        bs4Dash::tooltip(
+          textInput(ns("social_security"), "Social Security Benefit (USD/month)", "1500"),
+          title = "Monthly Social Security benefit expected starting at retirement",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("rental_income"), "Rental Income (USD/month)", "500"),
+          title = "Monthly rental income expected during retirement",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          textInput(ns("withdrawal_rate"), "Withdrawal Rate (%)", "4"),
+          title = "Planned annual withdrawal rate from your retirement savings",
+          placement = "right"
+        ),
+        width = 6, height = "300px"
       )
     ),
+    fluidRow(
+      column(width = 12, align = "center",
+             actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 20px;")
+      )
+    ),
+    fluidRow(
       box(
-        title = "",
+        title = "Retirement Savings Projection",
         status = "secondary",   
         width = 12, 
         plotlyOutput(ns("savingsPlot"))
       )
+    ),
+    fluidRow(
+      box(
+        title = "Retirement Summary & Recommendations",
+        status = "info",
+        width = 12,
+        htmlOutput(ns("resultText"))
+      )
+    )
   )
 }
 
+
 retirementCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
-
-  output$savingsPlot <- renderPlotly({
     
-    # Convert input values to numeric
-    current_age <- as.numeric(input$current_age)
-    retirement_age <- as.numeric(input$retirement_age)
-    current_savings <- as.numeric(input$current_savings)
-    future_savings <- as.numeric(input$future_savings) / 100  # Convert percentage to decimal
-    income <- as.numeric(input$pre_tax_income)
-    income_growth <- as.numeric(input$income_growth) / 100  # Convert percentage to decimal
-    investment_return <- as.numeric(input$investment_return) / 100  # Convert percentage to decimal
-    years <- current_age:retirement_age  # Sequence of years until retirement
+    calcResults <- eventReactive(input$calculate, {
+      # Convert input values to numeric
+      current_age <- as.numeric(input$current_age)
+      retirement_age <- as.numeric(input$retirement_age)
+      life_expectancy <- as.numeric(input$life_expectancy)
+      current_savings <- as.numeric(input$current_savings)
+      future_savings_rate <- as.numeric(input$future_savings) / 100  # as decimal
+      income <- as.numeric(input$pre_tax_income)
+      income_growth <- as.numeric(input$income_growth) / 100
+      investment_return <- as.numeric(input$investment_return) / 100
+      inflation_rate <- as.numeric(input$inflation_rate) / 100
+      
+      # Additional retirement details
+      monthly_expense <- as.numeric(input$monthly_expense)
+      healthcare_cost <- as.numeric(input$healthcare_cost)
+      social_security <- as.numeric(input$social_security)
+      rental_income <- as.numeric(input$rental_income)
+      withdrawal_rate <- as.numeric(input$withdrawal_rate) / 100
+      
+      # Calculate years until retirement
+      years_to_retirement <- retirement_age - current_age
+      
+      # Calculate future value of retirement savings at retirement
+      savings <- numeric(years_to_retirement + 1)
+      savings[1] <- current_savings
+      annual_income <- income
+      for (i in 2:(years_to_retirement + 1)) {
+        annual_income <- annual_income * (1 + income_growth)
+        savings[i] <- savings[i - 1] * (1 + investment_return) + (annual_income * future_savings_rate)
+      }
+      total_savings <- tail(savings, 1)
+      
+      # Adjust retirement expenses for inflation until retirement
+      adjusted_monthly_expense <- monthly_expense * ((1 + inflation_rate) ^ years_to_retirement)
+      adjusted_healthcare_cost <- healthcare_cost * ((1 + inflation_rate) ^ years_to_retirement)
+      
+      # Total annual retirement expenses (combining monthly expenses and healthcare)
+      total_annual_expense <- (adjusted_monthly_expense * 12) + adjusted_healthcare_cost
+      
+      # Annual income from Social Security and rental income
+      annual_non_savings_income <- (social_security + rental_income) * 12
+      
+      # Net annual amount needed from savings
+      required_annual_withdrawal <- max(total_annual_expense - annual_non_savings_income, 0)
+      
+      # Sustainable annual withdrawal from savings based on planned withdrawal rate
+      sustainable_withdrawal <- total_savings * withdrawal_rate
+      
+      # Estimate savings duration if only using savings (simple division)
+      savings_duration <- if(required_annual_withdrawal > 0) round(total_savings / required_annual_withdrawal, 1) else Inf
+      
+      # Generate recommendation message
+      recommendation <- if(sustainable_withdrawal >= required_annual_withdrawal) {
+        "Your projected savings are sufficient to cover your retirement expenses."
+      } else {
+        "Your projected savings may be insufficient. Consider increasing your savings rate or exploring additional income sources for retirement."
+      }
+      
+      list(
+        total_savings = total_savings,
+        required_annual_withdrawal = required_annual_withdrawal,
+        sustainable_withdrawal = sustainable_withdrawal,
+        savings_duration = savings_duration,
+        recommendation = recommendation,
+        savings_data = data.frame(Age = current_age:retirement_age, Savings = savings)
+      )
+    })
     
-    # Initialize savings array
-    savings <- numeric(length(years))
-    savings[1] <- current_savings  # Start with current savings
+    output$savingsPlot <- renderPlotly({
+      req(calcResults())
+      df <- calcResults()$savings_data
+      plot_ly(df, x = ~Age, y = ~Savings, type = "scatter", mode = "lines",
+              line = list(color = "#2c3e50", width = 3)) %>% 
+        layout(title = list(text = "Retirement Savings Projection", font = list(size = 15, color = "#2c3e50")),
+               margin = list(t = 50),
+               xaxis = list(title = "Age", showgrid = FALSE, zeroline = FALSE),
+               yaxis = list(title = "Savings (USD)", showgrid = TRUE, zeroline = FALSE),
+               hovermode = "x unified",
+               plot_bgcolor = "white",
+               paper_bgcolor = "white")
+    })
     
-    # Calculate savings for each year
-    for (i in 2:length(years)) {
-      income <- income * (1 + income_growth)  # Increase income annually
-      savings[i] <- savings[i - 1] * (1 + investment_return) + (income * future_savings)  # Compound growth + new savings
-    }
-    
-    # Create a data frame for plotting
-    df <- data.frame(Age = years, Savings = savings)
-    
-    # Generate the savings projection plot using Plotly
-    plot_ly(df, x = ~Age, y = ~Savings, type = "scatter", mode = "lines",
-            line = list(color = "#2c3e50", width = 3)) %>%
-      layout(title = list(text = "Retirement Savings Projection", font = list(size = 15, color = "#2c3e50")),
-            margin = list(t = 50), # Add some margin at the top
-            xaxis = list(title = "Age", showgrid = FALSE, zeroline = FALSE),
-            yaxis = list(title = "Savings (KES)", showgrid = TRUE, zeroline = FALSE),
-            hovermode = "x unified",
-            plot_bgcolor = "white",
-            paper_bgcolor = "white")
-
-  })
-    
-
+    output$resultText <- renderUI({
+      req(calcResults())
+      res <- calcResults()
+      tagList(
+        h4("Total Savings at Retirement: ", paste0("$", format(round(res$total_savings, 2), big.mark = ","))),
+        h4("Annual Withdrawal Needed from Savings: ", paste0("$", format(round(res$required_annual_withdrawal, 2), big.mark = ","))),
+        h4("Sustainable Annual Withdrawal (", input$withdrawal_rate, "% of savings): ", paste0("$", format(round(res$sustainable_withdrawal, 2), big.mark = ","))),
+        h4("Estimated Savings Duration: ", if(is.infinite(res$savings_duration)) "N/A" else paste0(res$savings_duration, " years")),
+        h4("Recommendation:"),
+        p(res$recommendation)
+      )
+    })
     
   })
 }
