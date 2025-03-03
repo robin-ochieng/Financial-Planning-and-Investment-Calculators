@@ -33,7 +33,7 @@ retirementCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("pre_tax_income"), "Current pre-tax income (USD)", "80000"),
+          autonumericInput(inputId = ns("pre_tax_income"), label = "Current pre-tax income (USD):", value = 80000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter your annual pre-tax income in USD",
           placement = "right"
         ),
@@ -68,7 +68,7 @@ retirementCalcUI <- function(id) {
         title = "Savings Details",
         status = "secondary",
         bs4Dash::tooltip(
-          textInput(ns("current_savings"), "Current retirement savings (USD)", "100000"),
+          autonumericInput(inputId = ns("current_savings"), label = "Current retirement savings (USD):", value = 100000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Amount you have saved for retirement so far in USD",
           placement = "right"
         ),
@@ -78,7 +78,7 @@ retirementCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("other_income"), "Other income after retirement (USD/month)", "0"),
+          autonumericInput(inputId = ns("other_income"), label = "Other income after retirement (USD/month):", value = 0, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Any additional income you expect to receive monthly during retirement",
           placement = "right"
         ),
@@ -90,12 +90,12 @@ retirementCalcUI <- function(id) {
         title = "Retirement Expenses",
         status = "secondary",
         bs4Dash::tooltip(
-          textInput(ns("monthly_expense"), "Monthly retirement expenses (USD)", "3000"),
+          autonumericInput(inputId = ns("monthly_expense"), label = "Monthly retirement expenses (USD):", value = 3000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Estimated monthly expenses during retirement for housing, travel, etc.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("healthcare_cost"), "Healthcare costs (USD/year)", "5000"),
+          autonumericInput(inputId = ns("healthcare_cost"), label = "Healthcare costs (USD/year):", value = 5000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Estimated annual healthcare costs during retirement",
           placement = "right"
         ),
@@ -105,12 +105,12 @@ retirementCalcUI <- function(id) {
         title = "Income & Withdrawal Strategy",
         status = "secondary",
         bs4Dash::tooltip(
-          textInput(ns("social_security"), "Social Security Benefit (USD/month)", "1500"),
+          autonumericInput(inputId = ns("social_security"), label = "Social Security Benefit (USD/month):", value = 1500, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Monthly Social Security benefit expected starting at retirement",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("rental_income"), "Rental Income (USD/month)", "500"),
+          autonumericInput(inputId = ns("rental_income"), label = "Rental Income (USD/month)", value = 500, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Monthly rental income expected during retirement",
           placement = "right"
         ),
