@@ -22,7 +22,7 @@ irrCalcUI <- function(id) {
     fluidRow(
       box(
         status = "success",
-        title = "User Input", width = 6, height = "1560px",
+        title = "User Input", width = 6, height = "700px",
         bs4Dash::tooltip(
           textInput(inputId = ns("name"), label = "Full Name", value = "John Bosco"),
           title = "Enter your full name.",
@@ -62,7 +62,11 @@ irrCalcUI <- function(id) {
           numericInput(ns("fund_balance"), "Current Fund Balance", value = 8000000, min = 0),
           title = "Enter the current balance of your retirement fund.",
           placement = "right"
-        ),
+        )
+      ),
+      box(
+        status = "success",
+        title = "User Input", width = 6, height = "700px",
         bs4Dash::tooltip(
           numericInput(ns("social_security"), "Social Security (USD/year)", value = 20000, min = 0),
           title = "Enter your expected annual Social Security benefit in USD.",
@@ -97,11 +101,17 @@ irrCalcUI <- function(id) {
           numericInput(ns("life_expectancy"), "Life Expectancy (years)", value = 85, min = 0),
           title = "Enter your expected life expectancy.",
           placement = "right"
+        )
+      )
+    ),
+    fluidRow(
+         column(width = 12, align = "center",
+             actionButton(ns("compute"), "Compute", class = "btn-primary control-button", style = "margin-bottom: 20px;")
+          )
         ),
-        actionButton(ns("compute"), "Compute", class = "btn-primary control-button")
-      ),
+    fluidRow(
       box(
-        title = "Results", status = "success", width = 6, height = "860px",
+        title = "Results", status = "success", width = 12, height = "650px",
         fluidRow(
           style = "margin-bottom: 10px;", 
           # 1) Title text output
@@ -183,7 +193,8 @@ irrCalcServer <- function(id) {
         if (shortfall > 0) {
           paste0(input$name, ", your projected retirement income (", after_tax_disp, 
                  "/year) is below your desired replacement (", desired_disp, 
-                 "/year). Shortfall: ", shortfall_disp)
+                 "/year). \n
+                 Shortfall: ", shortfall_disp)
         } else {
           paste0(input$name, ", your projected retirement income (", after_tax_disp, 
                  "/year) meets or exceeds your desired replacement (", desired_disp, 
