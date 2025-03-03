@@ -8,24 +8,73 @@ personalInvestmentCalcUI <- function(id) {
         width = 12,
         div(
           h2("Personal Investment Calculator", class = "page-title"),
-          p("Use this calculator to estimate the growth of your investment over time. Enter your initial investment, monthly contribution, annual interest rate, and investment duration to get started.",
+          p("A Personal Investment Calculator provides a clear picture of how your investments may grow over time and helps you make informed decisions to achieve your financial goals.",
             style = "margin-top: 10px;")
         )
       )
     ),
     fluidRow(
+      # Inputs box on the left
       box(
         status = "secondary",
-        title = "Investment Inputs", width = 4,
-        autonumericInput(inputId = ns("initial"),  label = "Initial Investment (KES):",  value = 100000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("contribution"),  label = "Monthly Contribution (KES):",  value = 10000, decimalPlaces = 0, digitGroupSeparator = ","),
-        numericInput(ns("rate"), "Annual Interest Rate (%):", value = 8, min = 0, step = 0.1),
-        numericInput(ns("years"), "Investment Duration (years):", value = 10, min = 1, step = 1),
-        actionButton(ns("calculate"), "Calculate", class = "btn-success control-button") 
+        title = "Investment Inputs", width = 5,
+        # Tooltips for each field
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("initial"), label = "Initial Investment (USD):", value = 10000, decimalPlaces = 0, digitGroupSeparator = ","),
+          title = "The lump sum you invest at the start.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("contribution"), label = "Monthly Contribution (USD):", value = 500, decimalPlaces = 0, digitGroupSeparator = ","),
+          title = "The amount you add to your investment every month.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          numericInput(ns("rate"), "Annual Interest Rate (%):", value = 7, min = 0, step = 0.1),
+          title = "The expected annual return on your investment.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          numericInput(ns("years"), "Investment Duration (years):", value = 20, min = 1, step = 1),
+          title = "How many years you plan to invest.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          numericInput(ns("inflation"), "Inflation Rate (%) [Optional]:", value = 2, min = 0, step = 0.1),
+          title = "The expected annual inflation rate (optional).",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("goal"), label = "Goal Amount (USD):", value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
+          title = "A target amount you want to achieve, which can help determine how much you need to save or invest.",
+          placement = "right"
+        ),
+        actionButton(ns("calculate"), "Calculate", class = "btn-success control-button")
       ),
+      # Results box on the right
       box(
-        title = "Results", status = "secondary", width = 8,
-        plotlyOutput(ns("growthPlot"))
+        title = "Results Summary", status = "secondary", width = 7, height = "595px",        fluidRow(
+          div(style = "margin-bottom: 10px;", uiOutput(ns("investment_summary")))
+        ),
+        fluidRow(
+          valueBoxOutput(ns("final_balance_box"), width = 12)
+        ),
+        fluidRow(
+          downloadButton(ns("download_excel"), "Download Investment Schedule (Excel)", class = "btn-info control-button", style = "margin-top: 30px;")
+        )
+      )
+    ),
+    # Graphs on the bottom: Two sets of graphs (Nominal and Inflation-Adjusted)
+    fluidRow(
+      box(
+        title = "Investment Growth - Nominal", status = "secondary", width = 12,
+        plotlyOutput(ns("growthPlot_nominal"))
+      )
+    ),
+    fluidRow(
+      box(
+        title = "Investment Growth - Inflation Adjusted", status = "secondary", width = 12,
+        plotlyOutput(ns("growthPlot_real"))
       )
     ),
     fluidRow(
@@ -41,46 +90,104 @@ personalInvestmentCalcUI <- function(id) {
 personalInvestmentCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
- 
-  calculate_investment <- eventReactive(input$calculate, {
-    initial <- input$initial
-    monthly <- input$contribution
-    rate <- input$rate / 100 / 12
-    months <- input$years * 12
     
-    balance <- numeric(months)
-    balance[1] <- initial * (1 + rate)
+    # Reactive calculation: Compute monthly schedule for both nominal and real balances.
+    calculate_investment <- eventReactive(input$calculate, {
+      initial <- input$initial
+      monthly <- input$contribution
+      rate_annual <- input$rate / 100
+      monthly_rate <- rate_annual / 12
+      years <- input$years
+      months <- years * 12
+      inflation_rate <- input$inflation / 100  # annual inflation rate
+      
+      # Calculate nominal balance using a simple loop
+      nominal <- numeric(months)
+      nominal[1] <- initial * (1 + monthly_rate) + monthly
+      if(months > 1) {
+        for (i in 2:months) {
+          nominal[i] <- (nominal[i-1] + monthly) * (1 + monthly_rate)
+        }
+      }
+      
+      # Calculate real (inflation-adjusted) balance:
+      # For each month, adjust nominal value by inflation for month/12 years.
+      real <- nominal / ((1 + inflation_rate)^((1:months) / 12))
+      
+      data.frame(Month = 1:months, Nominal = nominal, Real = real)
+    }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
-    for (i in 2:months) {
-      balance[i] <- (balance[i-1] + monthly) * (1 + rate)
-    }
+    # Nominal Growth Plot
+    output$growthPlot_nominal <- renderPlotly({
+      df <- calculate_investment()
+      plot_ly(df, x = ~Month, y = ~Nominal, type = 'scatter', mode = 'lines',
+              line = list(color = 'blue', width = 2)) %>%
+        layout(title = list(text = "Nominal Investment Growth Over Time"),
+               xaxis = list(title = "Months"),
+               yaxis = list(title = "Balance (USD)"),
+               margin = list(l = 50, r = 50, b = 50, t = 50))
+    })
     
-    data.frame(Month = 1:months, Balance = balance) %>%
-      mutate(Balance = paste0("KES ", formatC(Balance, format = "f", big.mark = ",", digits = 0)))
-  }, ignoreInit = FALSE, ignoreNULL = FALSE)
+    # Inflation-Adjusted Growth Plot
+    output$growthPlot_real <- renderPlotly({
+      df <- calculate_investment()
+      plot_ly(df, x = ~Month, y = ~Real, type = 'scatter', mode = 'lines',
+              line = list(color = 'green', width = 2)) %>%
+        layout(title = list(text = "Inflation-Adjusted Investment Growth Over Time"),
+               xaxis = list(title = "Months"),
+               yaxis = list(title = "Balance (USD)"),
+               margin = list(l = 50, r = 50, b = 50, t = 50))
+    })
+    
+    # Summary Table
+    output$summaryTable <- renderDataTable({
+      df <- calculate_investment()
+      df$Nominal <- scales::dollar(df$Nominal)
+      df$Real <- scales::dollar(df$Real)
+      df
+    })
+    
+    # Summary text and value box output
+    output$investment_summary <- renderUI({
+      df <- calculate_investment()
+      final_nominal <- tail(df$Nominal, 1)
+      final_real <- tail(df$Real, 1)
+      
+      HTML(paste0(
+        "<div style='margin-bottom:20px; font-size:16px;'><b>Future Value (Nominal):</b> ", 
+          scales::dollar(round(final_nominal, 0)), 
+        "</div>",
+        "<div style='margin-bottom:20px; font-size:16px;'><b>Inflation-Adjusted Value:</b> ", 
+          scales::dollar(round(final_real, 0)), 
+        "</div>",
+        "<div style='margin-bottom:30px; font-size:16px;'><b>Goal:</b> ", 
+          scales::dollar(input$goal), 
+        "</div>"
+      ))
+    })
 
-  output$growthPlot <- renderPlotly({
-  df <- calculate_investment()
-  # Clean up the Balance column
-  df$Balance <- as.numeric(gsub("KES ", "", gsub(",", "", df$Balance)))
-  # Create the Plotly plot
-  plot_ly(data = df, 
-          x = ~Month, 
-          y = ~Balance,
-          type = 'scatter', 
-          mode = 'lines',
-          line = list(color = 'blue', width = 2)) %>%
-    layout(title = list(text = "Investment Growth Over Time"),
-           xaxis = list(title = "Months"),
-           yaxis = list(title = "Balance (KES)"),
-           font = list(size = 12),
-           margin = list(l = 50, r = 50, b = 50, t = 50, pad = 4))
-})
-  
-  output$summaryTable <- renderDataTable({
-    df <- calculate_investment()
-    datatable(df, options = list(pageLength = 10))
-  })
-
+    
+    output$final_balance_box <- renderValueBox({
+      df <- calculate_investment()
+      final_nominal <- tail(df$Nominal, 1)
+      box_color <- if(final_nominal >= input$goal) "success" else "warning"
+      valueBox(
+        scales::dollar(round(final_nominal, 0)),
+        "Final Nominal Balance",
+        icon = icon("chart-line"),
+        color = box_color
+      )
+    })
+    
+    # Download Handler for Excel export of the schedule
+    output$download_excel <- downloadHandler(
+      filename = function() {
+        paste("investment_schedule_", Sys.Date(), ".xlsx", sep = "")
+      },
+      content = function(file) {
+        df <- calculate_investment()
+        writexl::write_xlsx(df, path = file)
+      }
+    )
   })
 }
