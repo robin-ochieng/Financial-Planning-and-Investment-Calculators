@@ -14,3 +14,11 @@ function updateClock() {
   
   // Update the clock every second
   setInterval(updateClock, 1000);
+
+
+  $(document).on('blur', '.format-number', function() {
+    var num = $(this).val().replace(/,/g, '');
+    if (!isNaN(num) && num !== '') {
+      $(this).val(Number(num).toLocaleString());
+    }
+  });
