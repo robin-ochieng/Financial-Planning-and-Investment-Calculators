@@ -111,14 +111,11 @@ irrCalcUI <- function(id) {
         ),
     fluidRow(
       box(
-        title = "Results", status = "success", width = 12, height = "650px",
+        title = "Results", status = "success", width = 12, height = "700px",
         fluidRow(
           style = "margin-bottom: 10px;", 
           # 1) Title text output
-          div(style = "margin-bottom: 10px;", textOutput(ns("income_ratio_title")))
-        ),
-        fluidRow(
-          valueBoxOutput(ns("income_ratio_box"), width = 12)
+          div(style = "margin-bottom: 10px;", uiOutput(ns("income_ratio_title")))
         ),
         # Replace the 3 value boxes with an unordered list using tags$li
         fluidRow(
@@ -182,69 +179,55 @@ irrCalcServer <- function(id) {
       shortfall <- desired_IRR_value_adj - after_tax_income_adj
       
       # ---------------------------
-      # 1) IRR Title and Value Box
+      # 1) IRR Title 
       # ---------------------------
-      output$income_ratio_title <- renderText({
+      output$income_ratio_title <- renderUI({
         # Use rounded values for display
-        desired_disp <- dollar(round(desired_IRR_value_adj, 0))
-        after_tax_disp <- dollar(round(after_tax_income_adj, 0))
-        shortfall_disp <- dollar(round(shortfall, 0))
+        desired_disp <- scales::dollar(round(desired_IRR_value_adj, 0))
+        after_tax_disp <- scales::dollar(round(after_tax_income_adj, 0))
+        shortfall_disp <- scales::dollar(round(shortfall, 0))
         
         if (shortfall > 0) {
-          paste0(input$name, ", your projected retirement income (", after_tax_disp, 
-                 "/year) is below your desired replacement (", desired_disp, 
-                 "/year). \n
-                 Shortfall: ", shortfall_disp)
+          HTML(paste0(
+            "<div style='font-family: \"Nunito\", sans-serif; color: #333;'>",
+            "<h4 style='margin-top: 0;'>", input$name, "</h4>",
+            "<p>Your projected retirement income of <strong style='color: #d9534f;'>", after_tax_disp, 
+            "</strong> per year is <span style='color: #d9534f;'>below</span> your desired replacement of <strong>", 
+            desired_disp, "</strong> per year.</p>",
+            "<p><em>Shortfall:</em> <strong>", shortfall_disp, "</strong> per year.</p>",
+            "</div>"
+          ))
         } else {
-          paste0(input$name, ", your projected retirement income (", after_tax_disp, 
-                 "/year) meets or exceeds your desired replacement (", desired_disp, 
-                 "/year).")
+          HTML(paste0(
+            "<div style='font-family: \"Nunito\", sans-serif; color: #333;'>",
+            "<h4 style='margin-top: 0;'>", input$name, "</h4>",
+            "<p>Your projected retirement income of <strong style='color: #5cb85c;'>", after_tax_disp, 
+            "</strong> per year meets or exceeds your desired replacement of <strong>", 
+            desired_disp, "</strong> per year.</p>",
+            "</div>"
+          ))
         }
       })
-      
-      output$income_ratio_box <- renderValueBox({
-        # Choose box color based on sufficiency
-        vb_color <- if (shortfall > 0) {
-          "danger"
-        } else {
-          "success"
-        }
-        
-        valueBox(
-          paste0(dollar(round(after_tax_income_adj, 0))), 
-          "After-Tax Retirement Income",
-          icon = icon("dollar-sign"),
-          color = vb_color
-        )
-      })
+
+
       
       # ---------------------------
       # 2) Financial List (as an unordered list)
       # ---------------------------
       output$financial_list <- renderUI({
-        tags$ul(
-          tags$li(
-            strong("Total Retirement Income: "),
-            paste(dollar(total_ret_income), "/year")
-          ),
-          tags$li(
-            strong("After-Tax Income: "),
-            paste(dollar(after_tax_income), "/year")
-          ),
-          tags$li(
-            strong("Desired IRR (Annual Replacement): "),
-            paste(dollar(desired_IRR_value), "/year")
-          ),
-          tags$li(
-            strong("Inflation Factor (over ", years_to_retirement, " years): "),
-            round(inflation_factor, 2)
-          ),
-          tags$li(
-            strong("Shortfall: "),
-            paste(dollar(shortfall), "/year")
-          )
-        )
+        HTML(paste0(
+          "<div style='font-family: \"Nunito\", sans-serif; font-size: 16px; color: #333; line-height: 1.5;'>",
+            "<ul style='list-style-type: none; padding-left: 0;'>",
+              "<li style='margin-bottom: 10px;'><strong>Total Retirement Income:</strong> ", scales::dollar(total_ret_income), " per year</li>",
+              "<li style='margin-bottom: 10px;'><strong>After-Tax Income:</strong> ", scales::dollar(after_tax_income), " per year</li>",
+              "<li style='margin-bottom: 10px;'><strong>Desired IRR (Annual Replacement):</strong> ", scales::dollar(desired_IRR_value), " per year</li>",
+              "<li style='margin-bottom: 10px;'><strong>Inflation Factor (over ", years_to_retirement, " years):</strong> ", round(inflation_factor, 2), "</li>",
+              "<li style='margin-bottom: 20px;'><strong>Shortfall:</strong> ", scales::dollar(shortfall), " per year</li>",
+            "</ul>",
+          "</div>"
+        ))
       })
+
       
       # ---------------------------
       # 3) Progress Bar and Message
@@ -262,7 +245,7 @@ irrCalcServer <- function(id) {
         }
         tags$div(
           class = "progress",
-          style = "height: 30px; margin-bottom: 10px;",
+          style = "height: 30px; margin-bottom: 20px;",
           tags$div(
             class = paste("progress-bar", bar_color),
             role = "progressbar",
