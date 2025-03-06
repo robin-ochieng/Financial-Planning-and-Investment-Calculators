@@ -22,7 +22,7 @@ irrCalcUI <- function(id) {
     fluidRow(
       box(
         status = "success",
-        title = "User Input", width = 6, height = "700px",
+        title = "Personal & Retirement Profile", width = 6, height = "700px",
         bs4Dash::tooltip(
           textInput(inputId = ns("name"), label = "Full Name", value = "John Bosco"),
           title = "Enter your full name.",
@@ -66,7 +66,7 @@ irrCalcUI <- function(id) {
       ),
       box(
         status = "success",
-        title = "User Input", width = 6, height = "700px",
+        title = "Retirement Income & Assumptions", width = 6, height = "700px",
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("social_security"), label = "Social Security (USD/year):", value = 20000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter your expected annual Social Security benefit in USD.",
