@@ -1,0 +1,12 @@
+name: FinancialandRetirementPlanning
+title: FinancialandRetirementPlanning
+username: kenbright
+account: kenbright
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14095289
+bundleId: 9854762
+url: https://kenbright.shinyapps.io/FinancialandRetirementPlanning/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
