@@ -17,7 +17,7 @@ personalInvestmentCalcUI <- function(id) {
       # Inputs box on the left
       box(
         status = "secondary",
-        title = "Investment Inputs", width = 5,
+        title = "Investment Inputs", width = 5, height = "580px", 
         # Tooltips for each field
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("initial"), label = "Initial Investment (USD):", value = 10000, decimalPlaces = 0, digitGroupSeparator = ","),
@@ -48,12 +48,11 @@ personalInvestmentCalcUI <- function(id) {
           autonumericInput(inputId = ns("goal"), label = "Goal Amount (USD):", value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "A target amount you want to achieve, which can help determine how much you need to save or invest.",
           placement = "right"
-        ),
-        actionButton(ns("calculate"), "Calculate", class = "btn-success control-button")
+        )
       ),
       # Results box on the right
       box(
-        title = "Results Summary", status = "secondary", width = 7, height = "595px",        fluidRow(
+        title = "Results Summary", status = "secondary", width = 7, height = "580px",        fluidRow(
           div(style = "margin-bottom: 10px;", uiOutput(ns("investment_summary")))
         ),
         fluidRow(
@@ -64,6 +63,14 @@ personalInvestmentCalcUI <- function(id) {
         )
       )
     ),
+      # Row 3: Calculate button
+      fluidRow(
+        column(
+          width = 12,
+          align = "center",
+        actionButton(ns("calculate"), "Calculate", class = "btn-success control-button", style = "margin-bottom: 15px;")
+        )
+      ),
     # Graphs on the bottom: Two sets of graphs (Nominal and Inflation-Adjusted)
     fluidRow(
       box(
@@ -154,14 +161,14 @@ personalInvestmentCalcServer <- function(id) {
       final_real <- tail(df$Real, 1)
       
       HTML(paste0(
-        "<div style='margin-bottom:20px; font-size:16px;'><b>Future Value (Nominal):</b> ", 
-          scales::dollar(round(final_nominal, 0)), 
-        "</div>",
-        "<div style='margin-bottom:20px; font-size:16px;'><b>Inflation-Adjusted Value:</b> ", 
-          scales::dollar(round(final_real, 0)), 
-        "</div>",
-        "<div style='margin-bottom:30px; font-size:16px;'><b>Goal:</b> ", 
-          scales::dollar(input$goal), 
+        "<div style='font-family: \"Nunito\", sans-serif; background-color: #f8f9fa; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;'>",
+          "<h3 style='margin-top: 0; color: #2c3e50;'>Investment Summary</h3>",
+          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Future Value (Nominal):</strong> ", 
+              scales::dollar(round(final_nominal, 0)), " per year</p>",
+          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Inflation-Adjusted Value:</strong> ", 
+              scales::dollar(round(final_real, 0)), " per year</p>",
+          "<p style='font-size: 16px; margin-bottom: 0;'><strong>Goal:</strong> ", 
+              scales::dollar(input$goal), "</p>",
         "</div>"
       ))
     })
