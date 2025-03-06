@@ -8,7 +8,7 @@ estatePlanningCalcUI <- function(id) {
         width = 12,
         div(
           h2("Estate Planning Calculator", class = "page-title"),
-          p("Use this calculator to estimate the value of your estate, calculate estate duty, and distribute your assets among beneficiaries. Enter your assets, liabilities, deductions, and beneficiary distribution to get started.",
+          p("Estate planning is the process of organizing your assets and liabilities to ensure that your wealth is transferred according to your wishes after your passing, while minimizing taxes and legal complications. Enter your assets, liabilities, deductions, and beneficiary distribution to get started.",
             style = "margin-top: 10px;")
         )
       )
