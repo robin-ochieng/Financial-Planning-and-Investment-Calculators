@@ -229,27 +229,25 @@ financialPlanningCalcServer <- function(id) {
       
       additional_text <- if (data$gap > 0) {
         paste0(
-          "<div style='margin-bottom:30px; font-size:16px;'><b>Additional Required Monthly Savings:</b> ", 
+          "<div style='margin-bottom:20px; font-size:16px; color: #d9534f;'><strong>Additional Required Monthly Savings:</strong> ", 
           scales::dollar(round(data$req_monthly, 0)), 
           "</div>"
         )
       } else {
-        "<div style='margin-bottom:30px; font-size:16px;'>Your projected savings meet your goal!</div>"
+        "<div style='margin-bottom:20px; font-size:16px; color: #5cb85c;'><strong>Your projected savings meet your goal!</strong></div>"
       }
       
       HTML(paste0(
-        "<div style='margin-bottom:20px; font-size:16px;'><b>Net Worth:</b> ", 
-          scales::dollar(data$net_worth), 
-        "</div>",
-        "<div style='margin-bottom:20px; font-size:16px;'><b>Future Value (Nominal):</b> ", 
-          scales::dollar(round(data$fv_nominal, 0)), 
-        "</div>",
-        "<div style='margin-bottom:20px; font-size:16px;'><b>Inflation-Adjusted Value:</b> ", 
-          scales::dollar(round(data$fv_real, 0)), 
-        "</div>",
-        additional_text
+        "<div style='font-family: \"Nunito\", sans-serif; background-color: #f9f9f9; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>",
+          "<h3 style='margin-top: 0; color: #2c3e50;'>Financial Summary</h3>",
+          "<div style='margin-bottom:20px; font-size:18px; color: #2c3e50;'><strong>Net Worth:</strong> ", scales::dollar(data$net_worth), "</div>",
+          "<div style='margin-bottom:20px; font-size:18px; color: #2c3e50;'><strong>Future Value (Nominal):</strong> ", scales::dollar(round(data$fv_nominal, 0)), "</div>",
+          "<div style='margin-bottom:20px; font-size:18px; color: #2c3e50;'><strong>Inflation-Adjusted Value:</strong> ", scales::dollar(round(data$fv_real, 0)), "</div>",
+          additional_text,
+        "</div>"
       ))
     })
+
 
     
     # Schedule Data: Yearly projection for the accumulation phase
