@@ -34,7 +34,7 @@ financialPlanningCalcUI <- function(id) {
     # Input Parameters in a collapsible card
     fluidRow(
       bs4Card(
-        title = "Financial Profile & Goal Settings",
+        title = "Personal Financial Profile",
         status = "secondary",
         width = 6,
         collapsible = TRUE,
@@ -96,7 +96,7 @@ financialPlanningCalcUI <- function(id) {
           placement = "right"
         )),
         bs4Card(
-        title = "Financial Profile & Goal Settings",
+        title = "Goal Settings & Economic Assumptions",
         status = "secondary",
         width = 6,
         collapsible = TRUE,
