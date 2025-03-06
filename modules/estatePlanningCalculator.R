@@ -13,19 +13,67 @@ estatePlanningCalcUI <- function(id) {
         )
       )
     ),
-    # Row 1: Assets & Liabilities
+   # Row 1: Assets & Liabilities
     fluidRow(
       bs4Card(
         title = "Assets",
         status = "primary",
         width = 6,
         collapsible = TRUE,
-        autonumericInput(inputId = ns("real_estate"),  label = "Real Estate (KES):",  value = 10000000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("investments"),  label = "Investments (KES):",  value = 5000000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("bank_savings"),  label = "Bank Savings (KES):",  value = 3000000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("business"),  label = "Business Interests (KES):",  value = 8000000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("personal_property"),  label = "Personal Property (KES):",  value = 2000000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("other_assets"),  label = "Other Assets (KES):",  value = 1000000, decimalPlaces = 0, digitGroupSeparator = ",")
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("real_estate"),  
+                          label = "Real Estate (KES):",  
+                          value = 10000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the current market value of your real estate holdings.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("investments"),  
+                          label = "Investments (KES):",  
+                          value = 5000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the value of your investment assets such as stocks, bonds, and mutual funds.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("bank_savings"),  
+                          label = "Bank Savings (KES):",  
+                          value = 3000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the amount in your bank savings accounts.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("business"),  
+                          label = "Business Interests (KES):",  
+                          value = 8000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the estimated value of your business interests.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("personal_property"),  
+                          label = "Personal Property (KES):",  
+                          value = 2000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the value of personal assets such as vehicles, jewelry, etc.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("other_assets"),  
+                          label = "Other Assets (KES):",  
+                          value = 1000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the value of any other assets not listed above.",
+          placement = "right"
+        )
       ),
       bs4Card(
         title = "Liabilities",
@@ -33,10 +81,42 @@ estatePlanningCalcUI <- function(id) {
         width = 6,
         height = "555px",
         collapsible = TRUE,
-        autonumericInput(inputId = ns("mortgages"),  label = "Mortgages (KES):",  value = 4000000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("loans"),  label = "Loans (KES):",  value = 2000000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("credit_cards"),  label = "Credit Card Debts (KES):",  value = 200000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("other_liabilities"),  label = "Other Liabilities (KES):",  value = 500000, decimalPlaces = 0, digitGroupSeparator = ",")
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("mortgages"),  
+                          label = "Mortgages (KES):",  
+                          value = 4000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the outstanding balance of your mortgages.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("loans"),  
+                          label = "Loans (KES):",  
+                          value = 2000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the total amount of your personal loans.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("credit_cards"),  
+                          label = "Credit Card Debts (KES):",  
+                          value = 200000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the total outstanding balance on your credit cards.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("other_liabilities"),  
+                          label = "Other Liabilities (KES):",  
+                          value = 500000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the total amount of any other liabilities.",
+          placement = "right"
+        )
       )
     ),
     # Row 2: Deductions & Beneficiary Distribution
@@ -46,10 +126,43 @@ estatePlanningCalcUI <- function(id) {
         status = "warning",
         width = 6,
         collapsible = TRUE,
-        autonumericInput(inputId = ns("funeral_expenses"),  label = "Funeral Expenses (KES):",  value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("estate_duty_rate"),  label = "Estate Duty Rate (%):", value = 25,  decimalPlaces = 1,  digitGroupSeparator = ",",  minimumValue = "0"),
-        autonumericInput(inputId = ns("estate_duty_exemption"),  label = "Estate Duty Exemption (KES):",  value = 5000000, decimalPlaces = 0, digitGroupSeparator = ","),
-        autonumericInput(inputId = ns("other_deductions"),  label = "Other Deductions (KES):",  value = 300000, decimalPlaces = 0, digitGroupSeparator = ",")
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("funeral_expenses"),  
+                          label = "Funeral Expenses (KES):",  
+                          value = 500000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the estimated cost of funeral expenses.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("estate_duty_rate"),  
+                          label = "Estate Duty Rate (%):", 
+                          value = 25,  
+                          decimalPlaces = 1,  
+                          digitGroupSeparator = ",",  
+                          minimumValue = "0"),
+          title = "Enter the estate duty rate as a percentage.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("estate_duty_exemption"),  
+                          label = "Estate Duty Exemption (KES):",  
+                          value = 5000000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter the exemption amount for estate duty.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("other_deductions"),  
+                          label = "Other Deductions (KES):",  
+                          value = 300000, 
+                          decimalPlaces = 0, 
+                          digitGroupSeparator = ","),
+          title = "Enter any other deductions applicable to your estate.",
+          placement = "right"
+        )
       ),
       bs4Card(
         title = "Beneficiary Distribution (%)",
@@ -57,12 +170,24 @@ estatePlanningCalcUI <- function(id) {
         height = "385px",
         width = 6,
         collapsible = TRUE,
-        numericInput(ns("spouse_pct"), "Spouse (%):", value = 50, min = 0, max = 100, step = 1),
-        numericInput(ns("children_pct"), "Children (%):", value = 30, min = 0, max = 100, step = 1),
-        numericInput(ns("others_pct"), "Other Heirs (%):", value = 20, min = 0, max = 100, step = 1)
+        bs4Dash::tooltip(
+          numericInput(ns("spouse_pct"), "Spouse (%):", value = 50, min = 0, max = 100, step = 1),
+          title = "Enter the percentage of your estate allocated to your spouse.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          numericInput(ns("children_pct"), "Children (%):", value = 30, min = 0, max = 100, step = 1),
+          title = "Enter the percentage of your estate allocated to your children.",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
+          numericInput(ns("others_pct"), "Other Heirs (%):", value = 20, min = 0, max = 100, step = 1),
+          title = "Enter the percentage of your estate allocated to other heirs.",
+          placement = "right"
+        )
       )
-    ),
-    # Row 3: Calculate button
+    ), 
+   # Row 3: Calculate button
     fluidRow(
       column(
         width = 12,
