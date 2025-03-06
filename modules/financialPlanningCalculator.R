@@ -94,7 +94,12 @@ financialPlanningCalcUI <- function(id) {
                            digitGroupSeparator = ","),
           title = "Enter the total value of your investment portfolio.",
           placement = "right"
-        ),
+        )),
+        bs4Card(
+        title = "Financial Profile & Goal Settings",
+        status = "secondary",
+        width = 6,
+        collapsible = TRUE,
         # Emergency Fund
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("emergency"), 
@@ -138,11 +143,18 @@ financialPlanningCalcUI <- function(id) {
           numericInput(ns("inflation_rate"), "Annual Inflation Rate (%):", value = 2, min = 0, step = 0.1),
           title = "Enter the expected annual inflation rate.",
           placement = "right"
-        ),
-        br(),
-        # Generate Projections Button
-        actionButton(ns("update"), "Generate Projections", class = "btn-primary control-button", style = "margin-bottom: 15px;")                           
+        )                          
+      )),
+         # Row 3: Calculate button
+      fluidRow(
+        column(
+          width = 12,
+          align = "center",
+                  # Generate Projections Button
+        actionButton(ns("update"), "Generate Projections", class = "btn-primary control-button", style = "margin-bottom: 15px;") 
+        )
       ),
+     fluidRow(
       bs4Card(
         title = "Results Summary", status = "secondary", width = 12,
         fluidRow(
