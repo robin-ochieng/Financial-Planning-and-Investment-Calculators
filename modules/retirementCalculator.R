@@ -231,19 +231,29 @@ retirementCalcServer <- function(id) {
                plot_bgcolor = "white",
                paper_bgcolor = "white")
     })
-    
+
     output$resultText <- renderUI({
       req(calcResults())
       res <- calcResults()
-      tagList(
-        h4("Total Savings at Retirement: ", paste0("$", format(round(res$total_savings, 2), big.mark = ","))),
-        h4("Annual Withdrawal Needed from Savings: ", paste0("$", format(round(res$required_annual_withdrawal, 2), big.mark = ","))),
-        h4("Sustainable Annual Withdrawal (", input$withdrawal_rate, "% of savings): ", paste0("$", format(round(res$sustainable_withdrawal, 2), big.mark = ","))),
-        h4("Estimated Savings Duration: ", if(is.infinite(res$savings_duration)) "N/A" else paste0(res$savings_duration, " years")),
-        h4("Recommendation:"),
-        p(res$recommendation)
-      )
+      HTML(paste0(
+        "<div style='font-family: \"Nunito\", sans-serif; color: #333; background-color: #f7f7f7; padding: 20px; border-radius: 8px;'>",
+          "<h3 style='margin-top: 0; color: #2c3e50;'>Retirement Savings Summary</h3>",
+          "<ul style='list-style-type: none; padding-left: 0; font-size: 16px;'>",
+            "<li style='margin-bottom: 10px;'><strong>Total Savings at Retirement:</strong> $", 
+              format(round(res$total_savings, 2), big.mark = ","), "</li>",
+            "<li style='margin-bottom: 10px;'><strong>Annual Withdrawal Needed from Savings:</strong> $", 
+              format(round(res$required_annual_withdrawal, 2), big.mark = ","), "</li>",
+            "<li style='margin-bottom: 10px;'><strong>Sustainable Annual Withdrawal (", input$withdrawal_rate, "% of savings):</strong> $", 
+              format(round(res$sustainable_withdrawal, 2), big.mark = ","), "</li>",
+            "<li style='margin-bottom: 10px;'><strong>Estimated Savings Duration:</strong> ", 
+              if (is.infinite(res$savings_duration)) "N/A" else paste0(res$savings_duration, " years"), "</li>",
+          "</ul>",
+          "<h4 style='margin-top: 20px; color: #2c3e50;'>Recommendation</h4>",
+          "<p style='font-size: 16px; line-height: 1.5;'>", res$recommendation, "</p>",
+        "</div>"
+      ))
     })
+   
     
   })
 }
