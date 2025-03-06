@@ -24,9 +24,9 @@ my_theme <- bs_theme(
   primary = "#EA80FC", 
   info = "#17a2b8",
   secondary = "#00BFA5",
-  base_font = font_google("Mulish"),
-  heading_font = font_google("Mulish"),
-  code_font = font_google("Mulish"),
+  base_font = font_google("Nunito"),
+  heading_font = font_google("Nunito"),
+  code_font = font_google("Nunito"),
   navbar_bg = "#333333",  
   navbar_fg = "#ffffff"  
 )
