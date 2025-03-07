@@ -39,7 +39,7 @@ irrCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("salary"), label = "Current Monthly Salary:", value = 250000, decimalPlaces = 0, digitGroupSeparator = ","),
+          autonumericInput(inputId = ns("salary"), label = "Current Monthly Salary (USD):", value = 250000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter your current monthly salary.",
           placement = "right"
         ),
@@ -59,7 +59,7 @@ irrCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("fund_balance"), label = "Current Fund Balance:", value = 8000000, decimalPlaces = 0, digitGroupSeparator = ","),
+          autonumericInput(inputId = ns("fund_balance"), label = "Current Fund Balance (USD):", value = 8000000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter the current balance of your retirement fund.",
           placement = "right"
         )
