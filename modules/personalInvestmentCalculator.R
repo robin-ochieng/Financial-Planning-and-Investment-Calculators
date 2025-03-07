@@ -40,7 +40,7 @@ personalInvestmentCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("inflation"), "Inflation Rate (%) [Optional]:", value = 2, min = 0, step = 0.1),
+          numericInput(ns("inflation"), "Inflation Rate (%):", value = 2, min = 0, step = 0.1),
           title = "The expected annual inflation rate (optional).",
           placement = "right"
         ),
@@ -98,35 +98,58 @@ personalInvestmentCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # Reactive calculation: Compute monthly schedule for both nominal and real balances.
+    # Reactive calculation: Compute the monthly schedule and summary values
     calculate_investment <- eventReactive(input$calculate, {
-      initial <- input$initial
-      monthly <- input$contribution
-      rate_annual <- input$rate / 100
+      # Convert inputs to numeric values
+      initial      <- as.numeric(input$initial)
+      monthly      <- as.numeric(input$contribution)
+      rate_annual  <- as.numeric(input$rate) / 100
       monthly_rate <- rate_annual / 12
-      years <- input$years
-      months <- years * 12
-      inflation_rate <- input$inflation / 100  # annual inflation rate
+      years        <- as.numeric(input$years)
+      months       <- years * 12
+      inflation_rate <- as.numeric(input$inflation) / 100
+      goal         <- as.numeric(input$goal)
       
-      # Calculate nominal balance using a simple loop
-      nominal <- numeric(months)
-      nominal[1] <- initial * (1 + monthly_rate) + monthly
-      if(months > 1) {
-        for (i in 2:months) {
-          nominal[i] <- (nominal[i-1] + monthly) * (1 + monthly_rate)
-        }
+      # --- Closed-Form Calculations for Summary ---
+      # Future Value of Initial Investment using compound interest formula:
+      fv_initial <- initial * (1 + monthly_rate)^(months)
+      
+      # Future Value of Regular Contributions (Annuity Formula):
+      fv_annuity <- if(monthly_rate == 0) { monthly * months } else { 
+        monthly * ((1 + monthly_rate)^(months) - 1) / monthly_rate 
       }
       
-      # Calculate real (inflation-adjusted) balance:
-      # For each month, adjust nominal value by inflation for month/12 years.
-      real <- nominal / ((1 + inflation_rate)^((1:months) / 12))
+      # Total Nominal Future Value:
+      total_nominal <- fv_initial + fv_annuity
       
-      data.frame(Month = 1:months, Nominal = nominal, Real = real)
+      # Inflation-Adjusted (Real) Future Value:
+      total_real <- total_nominal / ((1 + inflation_rate)^(years))
+      
+      # --- Monthly Schedule (for plots and table) ---
+      schedule <- data.frame(Month = 1:months, Nominal = numeric(months), Real = numeric(months))
+      # Use an iterative approach to simulate month-by-month growth
+      schedule$Nominal[1] <- initial * (1 + monthly_rate) + monthly
+      if(months > 1) {
+        for (i in 2:months) {
+          schedule$Nominal[i] <- (schedule$Nominal[i - 1] + monthly) * (1 + monthly_rate)
+        }
+      }
+      # Adjust each month’s nominal value for inflation (using monthly approximation)
+      schedule$Real <- schedule$Nominal / ((1 + inflation_rate)^((schedule$Month)/12))
+      
+      list(
+        schedule = schedule,
+        fv_initial = fv_initial,
+        fv_annuity = fv_annuity,
+        total_nominal = total_nominal,
+        total_real = total_real,
+        goal = goal
+      )
     }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
     # Nominal Growth Plot
     output$growthPlot_nominal <- renderPlotly({
-      df <- calculate_investment()
+      df <- calculate_investment()$schedule
       plot_ly(df, x = ~Month, y = ~Nominal, type = 'scatter', mode = 'lines',
               line = list(color = 'blue', width = 2)) %>%
         layout(title = list(text = "Nominal Investment Growth Over Time"),
@@ -137,7 +160,7 @@ personalInvestmentCalcServer <- function(id) {
     
     # Inflation-Adjusted Growth Plot
     output$growthPlot_real <- renderPlotly({
-      df <- calculate_investment()
+      df <- calculate_investment()$schedule
       plot_ly(df, x = ~Month, y = ~Real, type = 'scatter', mode = 'lines',
               line = list(color = 'green', width = 2)) %>%
         layout(title = list(text = "Inflation-Adjusted Investment Growth Over Time"),
@@ -146,40 +169,47 @@ personalInvestmentCalcServer <- function(id) {
                margin = list(l = 50, r = 50, b = 50, t = 50))
     })
     
-    # Summary Table
+    # Summary Table of monthly values
     output$summaryTable <- renderDataTable({
-      df <- calculate_investment()
+      df <- calculate_investment()$schedule
       df$Nominal <- scales::dollar(df$Nominal)
       df$Real <- scales::dollar(df$Real)
       df
     })
     
-    # Summary text and value box output
+    # Investment Summary and Recommendation Text
     output$investment_summary <- renderUI({
-      df <- calculate_investment()
-      final_nominal <- tail(df$Nominal, 1)
-      final_real <- tail(df$Real, 1)
-      
-      HTML(paste0(
+      calc <- calculate_investment()
+      summary_html <- paste0(
         "<div style='font-family: \"Nunito\", sans-serif; background-color: #f8f9fa; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;'>",
           "<h3 style='margin-top: 0; color: #2c3e50;'>Investment Summary</h3>",
-          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Future Value (Nominal):</strong> ", 
-              scales::dollar(round(final_nominal, 0)), " per year</p>",
-          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Inflation-Adjusted Value:</strong> ", 
-              scales::dollar(round(final_real, 0)), " per year</p>",
-          "<p style='font-size: 16px; margin-bottom: 0;'><strong>Goal:</strong> ", 
-              scales::dollar(input$goal), "</p>",
-        "</div>"
-      ))
+          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Future Value of Initial Investment:</strong> ", 
+              scales::dollar(round(calc$fv_initial, 0)), "</p>",
+          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Future Value of Regular Contributions:</strong> ", 
+              scales::dollar(round(calc$fv_annuity, 0)), "</p>",
+          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Total Future Value (Nominal):</strong> ", 
+              scales::dollar(round(calc$total_nominal, 0)), "</p>",
+          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Total Future Value (Inflation-Adjusted):</strong> ", 
+              scales::dollar(round(calc$total_real, 0)), "</p>",
+          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Goal Amount:</strong> ", 
+              scales::dollar(calc$goal), "</p>"
+      )
+      # Recommendation message based on whether the goal is met
+      recommendation <- if(calc$total_nominal >= calc$goal) {
+        "<p style='font-size: 16px; margin-bottom: 0; color: green;'><strong>Result:</strong> Congratulations! You are on track to meet your investment goal.</p>"
+      } else {
+        "<p style='font-size: 16px; margin-bottom: 0; color: red;'><strong>Result:</strong> Your projected future value is below your goal. Consider increasing your contributions or adjusting your strategy.</p>"
+      }
+      summary_html <- paste0(summary_html, recommendation, "</div>")
+      HTML(summary_html)
     })
-
     
+    # Final Nominal Balance Value Box
     output$final_balance_box <- renderValueBox({
-      df <- calculate_investment()
-      final_nominal <- tail(df$Nominal, 1)
-      box_color <- if(final_nominal >= input$goal) "success" else "warning"
+      calc <- calculate_investment()
+      box_color <- if(calc$total_nominal >= calc$goal) "success" else "warning"
       valueBox(
-        scales::dollar(round(final_nominal, 0)),
+        scales::dollar(round(calc$total_nominal, 0)),
         "Final Nominal Balance",
         icon = icon("chart-line"),
         color = box_color
@@ -192,9 +222,10 @@ personalInvestmentCalcServer <- function(id) {
         paste("investment_schedule_", Sys.Date(), ".xlsx", sep = "")
       },
       content = function(file) {
-        df <- calculate_investment()
-        writexl::write_xlsx(df, path = file)
+        calc <- calculate_investment()
+        writexl::write_xlsx(calc$schedule, path = file)
       }
     )
+    
   })
 }
