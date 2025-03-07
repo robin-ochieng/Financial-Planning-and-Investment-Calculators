@@ -37,6 +37,7 @@ financialPlanningCalcUI <- function(id) {
         title = "Personal Financial Profile",
         status = "secondary",
         width = 6,
+        height = "800px",
         collapsible = TRUE,
         bs4Dash::tooltip(
           selectInput(ns("goal"), "Financial Goal:",
@@ -94,11 +95,39 @@ financialPlanningCalcUI <- function(id) {
                            digitGroupSeparator = ","),
           title = "Enter the total value of your investment portfolio.",
           placement = "right"
-        )),
+        ),
+        # Life Insurance Coverage
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("insurance"), 
+                           label = "Life Insurance Coverage (USD):",  
+                           value = 500000, 
+                           decimalPlaces = 0, 
+                           digitGroupSeparator = ","),
+          title = "Enter your current life insurance coverage amount in USD.",
+          placement = "right"
+        ),
+        # Retirement Age
+        bs4Dash::tooltip(
+          numericInput(ns("retirement_age"), "Retirement Age:", value = 65, min = 18, step = 1),
+          title = "Enter the age at which you plan to retire.",
+          placement = "right"
+        ),
+        # Current Retirement Savings
+        bs4Dash::tooltip(
+          autonumericInput(inputId = ns("retirement_savings"), 
+                           label = "Current Retirement Savings (USD):",  
+                           value = 100000, 
+                           decimalPlaces = 0, 
+                           digitGroupSeparator = ","),
+          title = "Enter the amount you currently have in retirement savings.",
+          placement = "right"
+        )
+        ),
         bs4Card(
         title = "Goal Settings & Economic Assumptions",
         status = "secondary",
         width = 6,
+        height = "800px",
         collapsible = TRUE,
         # Emergency Fund
         bs4Dash::tooltip(
@@ -193,62 +222,108 @@ financialPlanningCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    # Update default Goal Amount and Goal Term based on selected goal
+    observeEvent(input$goal, {
+      req(goalSettings[[input$goal]])
+      updateNumericInput(session, "goal_term", value = goalSettings[[input$goal]]$defaultTerm)
+      updateNumericInput(session, "goal_amount", value = goalSettings[[input$goal]]$defaultAmount)
+    })
+    
     # Reactive: Financial Profile Calculation triggered by "update" button
     fpData <- eventReactive(input$update, {
-      # Net Worth calculation
+      # Net Worth calculation: Assets (Savings + Investments) minus Debt
       net_worth <- (input$savings + input$portfolio) - input$debt
       
-      # Annual Savings: Assume savings come from (Income - (Expenses * 12))
+      # Annual Savings: Income minus annual expenses
       annual_savings <- input$income - (input$expenses * 12)
       
-      # Future Value of Investments using compound interest
-      total_principal <- input$savings + input$portfolio
+      # Savings Rate (%)
+      savings_rate <- (annual_savings / input$income) * 100
+      
+      # Compound interest rate
       r <- input$exp_return / 100
       n <- input$goal_term  # number of years until goal
+      total_principal <- input$savings + input$portfolio
+      
+      # Future Value of non-retirement investments
       fv_nominal <- total_principal * (1 + r)^n + annual_savings * (((1 + r)^n - 1) / r)
       
-      # Adjust for inflation
-      real_rate <- (input$exp_return - input$inflation_rate) / 100
-      fv_real <- total_principal * (1 + real_rate)^n + annual_savings * (((1 + real_rate)^n - 1) / real_rate)
-      
-      # Gap for the Goal
-      gap <- max(input$goal_amount - fv_nominal, 0)
+      # For "Retirement" goal, add current retirement savings grown to future value
+      if (input$goal == "Retirement") {
+        retirement_future <- input$retirement_savings * (1 + r)^n
+        total_future <- fv_nominal + retirement_future
+        gap <- max(input$goal_amount - total_future, 0)
+      } else {
+        retirement_future <- NA
+        total_future <- fv_nominal
+        gap <- max(input$goal_amount - fv_nominal, 0)
+      }
       req_monthly <- if(gap > 0) gap / (n * 12) else 0
+      
+      # Insurance Coverage adequacy (threshold: $500,000)
+      insurance_status <- if(input$insurance >= 500000) "Adequate" else "Insufficient"
+      
+      # Emergency Fund sufficiency (recommend at least 3 months of expenses)
+      emergency_status <- if(input$emergency >= (input$expenses * 3)) "Sufficient" else "Insufficient"
       
       list(net_worth = net_worth,
            annual_savings = annual_savings,
+           savings_rate = savings_rate,
            fv_nominal = fv_nominal,
-           fv_real = fv_real,
+           retirement_future = retirement_future,
+           total_future = total_future,
            gap = gap,
-           req_monthly = req_monthly)
+           req_monthly = req_monthly,
+           insurance_status = insurance_status,
+           emergency_status = emergency_status)
     }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
-    # Summary text output
+    # Summary text output with recommendations
     output$fp_summary <- renderUI({
       data <- fpData()
-      
-      additional_text <- if (data$gap > 0) {
-        paste0(
-          "<div style='margin-bottom:20px; font-size:16px; color: #d9534f;'><strong>Additional Required Monthly Savings:</strong> ", 
-          scales::dollar(round(data$req_monthly, 0)), 
-          "</div>"
-        )
-      } else {
-        "<div style='margin-bottom:20px; font-size:16px; color: #5cb85c;'><strong>Your projected savings meet your goal!</strong></div>"
-      }
-      
-      HTML(paste0(
+      # Build summary details
+      summary_html <- paste0(
         "<div style='font-family: \"Nunito\", sans-serif; background-color: #f9f9f9; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>",
           "<h3 style='margin-top: 0; color: #2c3e50;'>Financial Summary</h3>",
-          "<div style='margin-bottom:20px; font-size:18px; color: #2c3e50;'><strong>Net Worth:</strong> ", scales::dollar(data$net_worth), "</div>",
-          "<div style='margin-bottom:20px; font-size:18px; color: #2c3e50;'><strong>Future Value (Nominal):</strong> ", scales::dollar(round(data$fv_nominal, 0)), "</div>",
-          "<div style='margin-bottom:20px; font-size:18px; color: #2c3e50;'><strong>Inflation-Adjusted Value:</strong> ", scales::dollar(round(data$fv_real, 0)), "</div>",
-          additional_text,
-        "</div>"
-      ))
+          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Net Worth:</strong> ", scales::dollar(data$net_worth), "</div>",
+          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Savings Rate:</strong> ", sprintf("%.1f", data$savings_rate), "%</div>"
+      )
+      
+      # If goal is Retirement, show separate retirement savings details
+      if (input$goal == "Retirement") {
+        summary_html <- paste0(
+          summary_html,
+          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Future Value of Non-Retirement Investments:</strong> ", scales::dollar(round(data$fv_nominal, 0)), "</div>",
+          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Future Value of Retirement Savings:</strong> ", scales::dollar(round(data$retirement_future, 0)), "</div>",
+          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Total Projected Retirement Savings:</strong> ", scales::dollar(round(data$total_future, 0)), "</div>",
+          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Retirement Savings Gap:</strong> ", scales::dollar(round(data$gap, 0)), "</div>"
+        )
+      } else {
+        summary_html <- paste0(
+          summary_html,
+          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Future Value of Investments:</strong> ", scales::dollar(round(data$fv_nominal, 0)), "</div>",
+          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Required Monthly Savings for Goal:</strong> ", scales::dollar(round(data$req_monthly, 0)), "</div>"
+        )
+      }
+      
+      # Add Insurance and Emergency Fund status
+      summary_html <- paste0(
+        summary_html,
+        "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Life Insurance Coverage:</strong> ", data$insurance_status, "</div>",
+        "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Emergency Fund:</strong> ", data$emergency_status, "</div>"
+      )
+      
+      # Recommendation message based on gap
+      recommendation <- if(data$gap > 0) {
+        paste0("<div style='font-size:18px; margin-top:15px; color: #d9534f;'><strong>Recommendation:</strong> You need to save an additional ", 
+               scales::dollar(round(data$req_monthly, 0)), " per month to reach your goal within ", input$goal_term, " years.</div>")
+      } else {
+        "<div style='font-size:18px; margin-top:15px; color: #5cb85c;'><strong>Recommendation:</strong> Congratulations! Your current savings and investment strategy meet your goal.</div>"
+      }
+      
+      summary_html <- paste0(summary_html, recommendation, "</div>")
+      HTML(summary_html)
     })
-
-
     
     # Schedule Data: Yearly projection for the accumulation phase
     scheduleData <- eventReactive(input$update, {
@@ -260,13 +335,21 @@ financialPlanningCalcServer <- function(id) {
       nominal <- total_principal * (1 + r)^years + annual_savings * (((1 + r)^years - 1) / r)
       inflation <- input$inflation_rate / 100
       real <- nominal / ((1 + inflation)^years)
-      data.frame(Year = years, Nominal = nominal, Real = real)
+      # For retirement goal, also calculate retirement savings projection
+      if (input$goal == "Retirement") {
+        retirement <- input$retirement_savings * (1 + r)^years
+        data.frame(Year = years, Nominal = nominal, Real = real, Retirement = retirement)
+      } else {
+        data.frame(Year = years, Nominal = nominal, Real = real)
+      }
     })
     
     output$scheduleTable <- renderDataTable({
       df <- scheduleData()
       df$Nominal <- scales::dollar(df$Nominal)
       df$Real <- scales::dollar(df$Real)
+      if("Retirement" %in% colnames(df))
+        df$Retirement <- scales::dollar(df$Retirement)
       df
     })
     
