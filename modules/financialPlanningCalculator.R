@@ -412,9 +412,6 @@ financialPlanningCalcServer <- function(id) {
         # Total Interest Earned: difference between Nominal projection and contributions
         df$Total_Interest <- df$Nominal - df$Cumulative_Contributions
         
-        # Load the openxlsx library for formatting
-        library(openxlsx)
-        
         # Create a new workbook and add a worksheet
         wb <- createWorkbook()
         addWorksheet(wb, "Schedule")
