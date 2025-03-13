@@ -202,6 +202,7 @@ estatePlanningCalcUI <- function(id) {
         status = "success",
         width = 12,
         collapsible = TRUE,
+        id = ns("EstateSummary"),
         tableOutput(ns("summaryTable")),
         uiOutput(ns("distributionWarning"))
       )
@@ -214,6 +215,19 @@ estatePlanningCalcUI <- function(id) {
 # Module server function
 estatePlanningCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    
+    observeEvent(input$calculate, {
+      # Your existing calculation logic here
+       
+      # Scroll to projection box
+      shinyjs::runjs(
+        sprintf(
+          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
+          ns("EstateSummary")
+         )
+      )
+    })
       # EventReactive: calculations occur when the "Calculate Estate Plan" button is pressed.
   estatePlan <- eventReactive(input$calculate, {
     # Total Assets
