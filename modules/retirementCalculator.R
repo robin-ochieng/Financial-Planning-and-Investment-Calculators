@@ -3,6 +3,7 @@
 retirementCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
+    shinyjs::useShinyjs(),
     fluidRow(
       column(
         width = 12,
@@ -18,7 +19,9 @@ retirementCalcUI <- function(id) {
         title = "Personal Details",
         status = "secondary",
         bs4Dash::tooltip(
+          shiny::tagAppendAttributes(
           textInput(ns("current_age"), "Your current age", "35"),
+          `data-trigger` = "click"),
           title = "Enter your current age in years",
           placement = "right"
         ),
@@ -128,12 +131,13 @@ retirementCalcUI <- function(id) {
       )
     ),
     fluidRow(
-      box(
-        title = "Retirement Savings Projection",
-        status = "secondary",   
-        width = 12, 
-        plotlyOutput(ns("savingsPlot"))
-      )
+        box(
+          title = "Retirement Savings Projection",
+          status = "secondary",   
+          width = 12, 
+          id = ns("savingsBox"),
+          plotlyOutput(ns("savingsPlot"))
+        )
     ),
     fluidRow(
       box(
@@ -149,7 +153,21 @@ retirementCalcUI <- function(id) {
 
 retirementCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    ns <- session$ns
     
+    observeEvent(input$calculate, {
+      # Your existing calculation logic here
+       
+      # Scroll to projection box
+      shinyjs::runjs(
+        sprintf(
+          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
+          ns("savingsBox")
+         )
+      )
+    })
+
+
     calcResults <- eventReactive(input$calculate, {
       # Convert input values to numeric
       current_age <- as.numeric(input$current_age)
