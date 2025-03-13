@@ -52,14 +52,19 @@ personalInvestmentCalcUI <- function(id) {
       ),
       # Results box on the right
       box(
-        title = "Results Summary", status = "secondary", width = 7, height = "580px",        fluidRow(
+        title = "Results Summary",
+        status = "secondary",
+        width = 7,
+        height = "580px",
+        id = ns("ResultsSummary"),
+        fluidRow(
           div(style = "margin-bottom: 10px;", uiOutput(ns("investment_summary")))
         ),
         fluidRow(
           valueBoxOutput(ns("final_balance_box"), width = 12)
         ),
         fluidRow(
-          downloadButton(ns("download_excel"), "Download Investment Schedule (Excel)", class = "btn-info control-button", style = "margin-top: 30px;")
+          downloadButton(ns("download_excel"), "Download Investment Schedule (Excel)", class = "btn-info control-button1", style = "margin-top: 30px;")
         )
       )
     ),
@@ -98,6 +103,17 @@ personalInvestmentCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    observeEvent(input$calculate, {
+      # Your existing calculation logic here
+       
+      # Scroll to projection box
+      shinyjs::runjs(
+        sprintf(
+          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
+          ns("ResultsSummary")
+         )
+      )
+    })
     # Reactive calculation: Compute the monthly schedule and summary values
     calculate_investment <- eventReactive(input$calculate, {
       # Convert inputs to numeric values
@@ -217,15 +233,41 @@ personalInvestmentCalcServer <- function(id) {
     })
     
     # Download Handler for Excel export of the schedule
+    # Updated Download Handler for Formatted Excel Output
     output$download_excel <- downloadHandler(
       filename = function() {
         paste("investment_schedule_", Sys.Date(), ".xlsx", sep = "")
       },
       content = function(file) {
+        library(openxlsx)
         calc <- calculate_investment()
-        writexl::write_xlsx(calc$schedule, path = file)
+        
+        # Compute additional fields
+        schedule <- calc$schedule
+        schedule$Cumulative_Contributions <- cumsum(rep(input$contribution, nrow(schedule)))
+        schedule$Total_Contributions <- input$initial + schedule$Cumulative_Contributions
+        schedule$Total_Interest_Earned <- schedule$Nominal - schedule$Total_Contributions
+        
+        # Convert month index to Year-Month format
+        schedule$Month_Year <- format(seq(Sys.Date(), by = "month", length.out = nrow(schedule)), "%Y-%m")
+        
+        # Create a workbook
+        wb <- createWorkbook()
+        addWorksheet(wb, "Investment Schedule")
+        
+        # Define styles
+        header_style <- createStyle(fontSize = 12, fontColour = "white", fgFill = "#0137A6", halign = "CENTER", textDecoration = "bold")
+        currency_style <- createStyle(numFmt = "\"$\"#,##0.00")
+        
+        # Write data with formatting
+        writeData(wb, "Investment Schedule", schedule, startRow = 1, headerStyle = header_style)
+        addStyle(wb, "Investment Schedule", currency_style, cols = 2:5, rows = 2:(nrow(schedule) + 1), gridExpand = TRUE)
+        
+        # Save workbook
+        saveWorkbook(wb, file, overwrite = TRUE)
       }
     )
+
     
   })
 }
