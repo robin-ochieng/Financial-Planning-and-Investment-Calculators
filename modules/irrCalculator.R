@@ -111,7 +111,11 @@ irrCalcUI <- function(id) {
         ),
     fluidRow(
       box(
-        title = "Results", status = "success", width = 12, height = "700px",
+        title = "Results", 
+        status = "success",
+        width = 12, 
+        id = ns("Results"),
+        height = "700px",
         fluidRow(
           style = "margin-bottom: 10px;", 
           # 1) Title text output
@@ -150,6 +154,19 @@ irrCalcUI <- function(id) {
 # IRR Calculator Module Server
 irrCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    
+    observeEvent(input$compute, {
+      # Your existing calculation logic here
+       
+      # Scroll to projection box
+      shinyjs::runjs(
+        sprintf(
+          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
+          ns("Results")
+         )
+      )
+    })
 
     observeEvent(input$compute, {
       # Use the provided current age directly
