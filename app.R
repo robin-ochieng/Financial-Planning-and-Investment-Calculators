@@ -10,6 +10,7 @@ library(shinyWidgets)
 library(shinyjs)
 library(shinyBS)
 library(scales)
+shinyjs::useShinyjs()
 
 source("modules/retirementCalculator.R")
 source("modules/irrCalculator.R")
