@@ -22,3 +22,12 @@ function updateClock() {
       $(this).val(Number(num).toLocaleString());
     }
   });
+
+
+  // www/js/custom.js
+Shiny.addCustomMessageHandler('scrollToElement', function(id) {
+  var el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+  }
+});
