@@ -185,12 +185,15 @@ financialPlanningCalcUI <- function(id) {
       ),
      fluidRow(
       bs4Card(
-        title = "Results Summary", status = "secondary", width = 12,
+        title = "Results Summary", 
+        status = "secondary", 
+        width = 12,
+        id = ns("ResultsSummary"),
         fluidRow(
           div(style = "margin-bottom: 10px;", uiOutput(ns("fp_summary")))
         ),
         fluidRow(
-          downloadButton(ns("download_excel"), "Download Schedule (Excel)", class = "btn-info contr")
+          downloadButton(ns("download_excel"), "Download Schedule (Excel)", class = "btn-info control-button1")
         )
       )
     ),
@@ -222,6 +225,17 @@ financialPlanningCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    observeEvent(input$update, {
+      # Your existing calculation logic here
+       
+      # Scroll to projection box
+      shinyjs::runjs(
+        sprintf(
+          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
+          ns("ResultsSummary")
+         )
+      )
+    })    
     # Update default Goal Amount and Goal Term based on selected goal
     observeEvent(input$goal, {
       req(goalSettings[[input$goal]])
@@ -378,15 +392,62 @@ financialPlanningCalcServer <- function(id) {
     })
     
     # Excel Download Handler
+    # Excel Download Handler with formatting and additional fields
     output$download_excel <- downloadHandler(
       filename = function() {
         paste("financial_planning_schedule_", Sys.Date(), ".xlsx", sep = "")
       },
       content = function(file) {
+        # Get schedule data (yearly projection)
         df <- scheduleData()
-        writexl::write_xlsx(df, path = file)
+        
+        # Calculate additional fields:
+        # Total principal: current savings + investment portfolio
+        total_principal <- input$savings + input$portfolio
+        # Annual savings: income minus (12 * monthly expenses)
+        annual_savings <- input$income - (input$expenses * 12)
+        
+        # Cumulative Contributions: starting with total_principal, then adding annual savings each year
+        df$Cumulative_Contributions <- total_principal + annual_savings * df$Year
+        # Total Interest Earned: difference between Nominal projection and contributions
+        df$Total_Interest <- df$Nominal - df$Cumulative_Contributions
+        
+        # Load the openxlsx library for formatting
+        library(openxlsx)
+        
+        # Create a new workbook and add a worksheet
+        wb <- createWorkbook()
+        addWorksheet(wb, "Schedule")
+        
+        # Define styles for headers and currency formatting
+        headerStyle <- createStyle(
+          fontSize = 12, 
+          fontColour = "white", 
+          fgFill = "#0137A6", 
+          halign = "CENTER", 
+          textDecoration = "bold"
+        )
+        currencyStyle <- createStyle(numFmt = "\"$\"#,##0.00")
+        
+        # Write the data with header style
+        writeData(wb, sheet = "Schedule", df, headerStyle = headerStyle)
+        
+        # Identify columns to format as currency: Nominal, Real, Cumulative Contributions, Total Interest, and Retirement (if applicable)
+        cols_to_format <- c("Nominal", "Real", "Cumulative_Contributions", "Total_Interest")
+        if ("Retirement" %in% names(df)) {
+          cols_to_format <- c(cols_to_format, "Retirement")
+        }
+        colNumbers <- which(names(df) %in% cols_to_format)
+        
+        # Apply the currency style to the selected columns (starting from row 2 because row 1 has headers)
+        addStyle(wb, sheet = "Schedule", style = currencyStyle, 
+                rows = 2:(nrow(df) + 1), cols = colNumbers, gridExpand = TRUE)
+        
+        # Save the workbook to the specified file
+        saveWorkbook(wb, file, overwrite = TRUE)
       }
     )
+
     
   })
 }
