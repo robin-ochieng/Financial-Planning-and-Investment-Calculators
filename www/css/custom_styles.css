@@ -20,6 +20,20 @@
        cursor: pointer;
     }
 
+    .control-button1 {
+      font-size: 14px;
+      margin-right: 10px; 
+      margin-left: 10px; 
+      background-color: #0dcaf0;
+      color: #FFFFFF; 
+      border: 1px solid #0137A6; 
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+   }
+
+    
+
     .header-title-container {
        display: flex;
        align-items: center;
