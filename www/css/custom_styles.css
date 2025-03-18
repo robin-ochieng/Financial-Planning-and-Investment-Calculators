@@ -116,6 +116,28 @@
   font-size: 10px !important;
 }
 
+/* Target the menu item icon in the sidebar */
+/* custom_styles.css */
+.logos {
+  position: absolute;
+  top: 5px;     /* Changed from bottom to top */
+  left: 5px;    /* Positioning from the left */
+  display: flex; /* Align images side by side */
+  gap: 20px;     /* Optional: add spacing between images */
+  padding: 10px;
+}
+
+/* custom_styles.css */
+.afdb-logo {
+  height: 100px;
+}
+
+
+.logos img {
+  height: 50px;
+}
+
+
 
 
 /* Hide the .menu-container on smaller screens */
