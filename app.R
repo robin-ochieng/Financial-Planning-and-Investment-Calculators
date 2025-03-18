@@ -58,6 +58,10 @@ ui <- dashboardPage(
    # )
   ),
   dashboardSidebar(
+    div(class = "logos",
+        img(src = "images/kenbright.png"),
+        img(src = "images/afdb logo.png", class = "afdb-logo")
+    ),
     tags$div(
       class = "menu-container",
     sidebarMenu(
