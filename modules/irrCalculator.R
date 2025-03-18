@@ -156,10 +156,8 @@ irrCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    # Scroll to results box when compute is pressed
     observeEvent(input$compute, {
-      # Your existing calculation logic here
-       
-      # Scroll to projection box
       shinyjs::runjs(
         sprintf(
           "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
@@ -169,32 +167,44 @@ irrCalcServer <- function(id) {
     })
 
     observeEvent(input$compute, {
-      # Use the provided current age directly
+      withProgress(message = 'Computing IRR...', value = 0, {
+      # Step 1: Basic Retirement Profile
+      incProgress(0.1, detail = "Processing retirement profile...")
       age <- input$current_age
       years_to_retirement <- input$retirement_age - age
       
+      incProgress(0.1, detail = "Calculating income details...")
       # Annual pre-retirement income computed from monthly salary
       annual_income <- input$salary * 12
-      
       # Desired income replacement value (in USD/year)
       desired_IRR_value <- annual_income * (input$desired_IRR / 100)
       
+      # Step 2: Compute Total Retirement Income
+      incProgress(0.15, detail = "Summing income streams...")      
       # Total Retirement Income streams (USD/year)
       total_ret_income <- input$social_security + input$pension_income + input$savings_withdrawal
       
+      # Step 3: Tax Adjustments
+      incProgress(0.1, detail = "Calculating taxes...")
       # Calculate taxes on the taxable portion (pension and savings withdrawal)
       taxable_income <- input$pension_income + input$savings_withdrawal
       taxes <- taxable_income * (input$tax_rate / 100)
       after_tax_income <- total_ret_income - taxes
-      
+
+      # Step 4: Inflation Adjustment
+      incProgress(0.2, detail = "Adjusting for inflation...")      
       # Adjust for inflation over the years until retirement
       inflation_factor <- (1 + input$inflation_rate / 100)^years_to_retirement
       desired_IRR_value_adj <- desired_IRR_value * inflation_factor
       after_tax_income_adj <- after_tax_income * inflation_factor
       
-      # Determine shortfall (if any)
+      # Step 5: Determine Shortfall
+      incProgress(0.15, detail = "Computing shortfall...")
       shortfall <- desired_IRR_value_adj - after_tax_income_adj
-      
+
+      # Finalize progress
+      incProgress(0.1, detail = "Finalizing results...") 
+
       # ---------------------------
       # 1) IRR Title 
       # ---------------------------
@@ -300,8 +310,8 @@ irrCalcServer <- function(id) {
           )
         )
       })
-      
-    }, ignoreInit = FALSE, ignoreNULL = FALSE)
+    })  # End withProgress
+  }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
   })
 }
