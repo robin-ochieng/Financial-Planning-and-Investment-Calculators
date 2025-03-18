@@ -4,6 +4,27 @@ retirementCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
     shinyjs::useShinyjs(),
+    # Include Google Translate scripts in the header
+    tags$head(
+      tags$script(src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"),
+      tags$script(HTML("
+        function googleTranslateElementInit() {
+          new google.translate.TranslateElement({
+            pageLanguage: 'en', 
+            autoDisplay: false
+          }, 'google_translate_element');
+        }
+      "))
+    ),
+    # Position the Google Translate widget off-screen so it's still accessible
+    tags$div(id = "google_translate_element", style = "position: absolute; left: -9999px;"),
+    # Translate button row
+    fluidRow(
+      column(width = 12, align = "right",
+             actionButton(ns("translate"), "Translate to French", class = "btn-secondary control-button-translate"),
+             actionButton(ns("toggleLanguages"), "More Language Options", class = "btn-secondary control-button-translate")
+      )
+    ),
     fluidRow(
       column(
         width = 12,
@@ -14,14 +35,15 @@ retirementCalcUI <- function(id) {
         )
       )
     ),
+
     fluidRow(
       box(
         title = "Personal Details",
         status = "secondary",
         bs4Dash::tooltip(
           shiny::tagAppendAttributes(
-          textInput(ns("current_age"), "Your current age", "35"),
-          `data-trigger` = "click"),
+            textInput(ns("current_age"), "Your current age", "35"),
+            `data-trigger` = "click"),
           title = "Enter your current age in years",
           placement = "right"
         ),
@@ -124,13 +146,13 @@ retirementCalcUI <- function(id) {
         ),
         width = 6, height = "300px"
       )
-    ),
-    fluidRow(
-      column(width = 12, align = "center",
-             actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 20px;")
-      )
-    ),
-    fluidRow(
+    ),      
+      fluidRow(
+        column(width = 12, align = "center",
+               actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 20px;")
+        )
+      ),
+      fluidRow(
         box(
           title = "Retirement Savings Projection",
           status = "secondary",   
@@ -138,15 +160,15 @@ retirementCalcUI <- function(id) {
           id = ns("savingsBox"),
           plotlyOutput(ns("savingsPlot"))
         )
-    ),
-    fluidRow(
-      box(
-        title = "Retirement Summary & Recommendations",
-        status = "info",
-        width = 12,
-        htmlOutput(ns("resultText"))
+      ),
+      fluidRow(
+        box(
+          title = "Retirement Summary & Recommendations",
+          status = "info",
+          width = 12,
+          htmlOutput(ns("resultText"))
+        )
       )
-    )
   )
 }
 
@@ -155,10 +177,44 @@ retirementCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    # When Translate button is clicked, trigger translation using the dropdown
+    observeEvent(input$translate, {
+      shinyjs::runjs("
+        function triggerTranslation() {
+          var combo = document.querySelector('.goog-te-combo');
+          if (combo) {
+            combo.value = 'fr';
+            // Create and dispatch a change event to trigger translation
+            var event = document.createEvent('HTMLEvents');
+            event.initEvent('change', true, true);
+            combo.dispatchEvent(event);
+          } else {
+            console.log('Google Translate combo element not found.');
+          }
+        }
+        // Allow extra time for the widget to load
+        setTimeout(triggerTranslation, 1500);
+      ")
+    })
+
+    # Button to toggle visibility of the language options (with scrolling).
+    observeEvent(input$toggleLanguages, {
+      shinyjs::runjs("
+        var el = document.getElementById('google_translate_element');
+        // If currently hidden off-screen, make it visible and scrollable.
+        if (el.style.left === '-9999px') {
+          el.style.left = '0';
+          el.style.position = 'relative';
+          el.style.maxHeight = '300px';
+          el.style.overflowY = 'auto';
+        } else {
+          el.style.left = '-9999px';
+        }
+      ")
+    })
+    
     observeEvent(input$calculate, {
       # Your existing calculation logic here
-       
-      # Scroll to projection box
       shinyjs::runjs(
         sprintf(
           "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
@@ -167,8 +223,10 @@ retirementCalcServer <- function(id) {
       )
     })
 
-
     calcResults <- eventReactive(input$calculate, {
+      withProgress(message = 'Calculating retirement savings...', value = 0, {
+      # Step 1: Convert input values to numeric
+      incProgress(0.1, detail = "Processing input values...")
       # Convert input values to numeric
       current_age <- as.numeric(input$current_age)
       retirement_age <- as.numeric(input$retirement_age)
@@ -181,6 +239,7 @@ retirementCalcServer <- function(id) {
       inflation_rate <- as.numeric(input$inflation_rate) / 100
       
       # Additional retirement details
+      incProgress(0.1, detail = "Gathering retirement details...")
       monthly_expense <- as.numeric(input$monthly_expense)
       healthcare_cost <- as.numeric(input$healthcare_cost)
       social_security <- as.numeric(input$social_security)
@@ -188,6 +247,8 @@ retirementCalcServer <- function(id) {
       withdrawal_rate <- as.numeric(input$withdrawal_rate) / 100
       
       # Calculate years until retirement
+      # Step 3: Calculate years until retirement and savings accumulation
+      incProgress(0.2, detail = "Calculating savings accumulation...")      
       years_to_retirement <- retirement_age - current_age
       
       # Calculate future value of retirement savings at retirement
@@ -201,6 +262,8 @@ retirementCalcServer <- function(id) {
       total_savings <- tail(savings, 1)
       
       # Adjust retirement expenses for inflation until retirement
+      # Step 4: Adjust expenses for inflation and calculate required annual withdrawal
+      incProgress(0.3, detail = "Adjusting expenses for inflation...")
       adjusted_monthly_expense <- monthly_expense * ((1 + inflation_rate) ^ years_to_retirement)
       adjusted_healthcare_cost <- healthcare_cost * ((1 + inflation_rate) ^ years_to_retirement)
       
@@ -214,11 +277,13 @@ retirementCalcServer <- function(id) {
       required_annual_withdrawal <- max(total_annual_expense - annual_non_savings_income, 0)
       
       # Sustainable annual withdrawal from savings based on planned withdrawal rate
+      # Step 5: Determine sustainable withdrawal and savings duration
+      incProgress(0.2, detail = "Finalizing projections...")
       sustainable_withdrawal <- total_savings * withdrawal_rate
-      
       # Estimate savings duration if only using savings (simple division)
       savings_duration <- if(required_annual_withdrawal > 0) round(total_savings / required_annual_withdrawal, 1) else Inf
       
+      # Step 6: Generate recommendation
       # Generate recommendation message
       recommendation <- if(sustainable_withdrawal >= required_annual_withdrawal) {
         "Your projected savings are sufficient to cover your retirement expenses."
@@ -226,6 +291,7 @@ retirementCalcServer <- function(id) {
         "Your projected savings may be insufficient. Consider increasing your savings rate or exploring additional income sources for retirement."
       }
       
+      incProgress(0.1, detail = "Wrapping up...")
       list(
         total_savings = total_savings,
         required_annual_withdrawal = required_annual_withdrawal,
@@ -235,6 +301,7 @@ retirementCalcServer <- function(id) {
         savings_data = data.frame(Age = current_age:retirement_age, Savings = savings)
       )
     })
+  })
     
     output$savingsPlot <- renderPlotly({
       req(calcResults())
@@ -271,7 +338,6 @@ retirementCalcServer <- function(id) {
         "</div>"
       ))
     })
-   
     
   })
 }
