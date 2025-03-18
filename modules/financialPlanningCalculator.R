@@ -226,8 +226,6 @@ financialPlanningCalcServer <- function(id) {
     ns <- session$ns
     
     observeEvent(input$update, {
-      # Your existing calculation logic here
-       
       # Scroll to projection box
       shinyjs::runjs(
         sprintf(
@@ -245,41 +243,51 @@ financialPlanningCalcServer <- function(id) {
     
     # Reactive: Financial Profile Calculation triggered by "update" button
     fpData <- eventReactive(input$update, {
-      # Net Worth calculation: Assets (Savings + Investments) minus Debt
-      net_worth <- (input$savings + input$portfolio) - input$debt
+      withProgress(message = "Calculating financial profile...", value = 0, {
+        # Step 1: Compute Net Worth and Annual Savings
+        incProgress(0.2, detail = "Calculating Net Worth and Annual Savings...")
       
-      # Annual Savings: Income minus annual expenses
-      annual_savings <- input$income - (input$expenses * 12)
-      
-      # Savings Rate (%)
-      savings_rate <- (annual_savings / input$income) * 100
-      
-      # Compound interest rate
-      r <- input$exp_return / 100
-      n <- input$goal_term  # number of years until goal
-      total_principal <- input$savings + input$portfolio
-      
-      # Future Value of non-retirement investments
-      fv_nominal <- total_principal * (1 + r)^n + annual_savings * (((1 + r)^n - 1) / r)
-      
-      # For "Retirement" goal, add current retirement savings grown to future value
-      if (input$goal == "Retirement") {
-        retirement_future <- input$retirement_savings * (1 + r)^n
-        total_future <- fv_nominal + retirement_future
-        gap <- max(input$goal_amount - total_future, 0)
-      } else {
-        retirement_future <- NA
-        total_future <- fv_nominal
-        gap <- max(input$goal_amount - fv_nominal, 0)
-      }
-      req_monthly <- if(gap > 0) gap / (n * 12) else 0
-      
-      # Insurance Coverage adequacy (threshold: $500,000)
-      insurance_status <- if(input$insurance >= 500000) "Adequate" else "Insufficient"
-      
-      # Emergency Fund sufficiency (recommend at least 3 months of expenses)
-      emergency_status <- if(input$emergency >= (input$expenses * 3)) "Sufficient" else "Insufficient"
-      
+        # Net Worth calculation: Assets (Savings + Investments) minus Debt
+        net_worth <- (input$savings + input$portfolio) - input$debt
+        
+        # Annual Savings: Income minus annual expenses
+        annual_savings <- input$income - (input$expenses * 12)
+        
+        # Savings Rate (%)
+        savings_rate <- (annual_savings / input$income) * 100
+        
+        # Step 2: Compute Future Value of Investments  
+        incProgress(0.2, detail = "Computing future value of investments...")  
+        # Compound interest rate
+        r <- input$exp_return / 100
+        n <- input$goal_term  # number of years until goal
+        total_principal <- input$savings + input$portfolio
+        # Future Value of non-retirement investments
+        fv_nominal <- total_principal * (1 + r)^n + annual_savings * (((1 + r)^n - 1) / r)
+
+        # Step 3: Adjust for Retirement Savings if Goal is Retirement
+        incProgress(0.2, detail = "Adjusting for retirement savings...")      
+        # For "Retirement" goal, add current retirement savings grown to future value
+        if (input$goal == "Retirement") {
+          retirement_future <- input$retirement_savings * (1 + r)^n
+          total_future <- fv_nominal + retirement_future
+          gap <- max(input$goal_amount - total_future, 0)
+        } else {
+          retirement_future <- NA
+          total_future <- fv_nominal
+          gap <- max(input$goal_amount - fv_nominal, 0)
+        }
+        req_monthly <- if(gap > 0) gap / (n * 12) else 0
+
+        # Step 4: Assess Insurance and Emergency Fund Status
+        incProgress(0.2, detail = "Assessing insurance and emergency fund status...")     
+        # Insurance Coverage adequacy (threshold: $500,000)
+        insurance_status <- if(input$insurance >= 500000) "Adequate" else "Insufficient"
+        # Emergency Fund sufficiency (recommend at least 3 months of expenses)
+        emergency_status <- if(input$emergency >= (input$expenses * 3)) "Sufficient" else "Insufficient"
+        
+      # Finalize results
+      incProgress(0.2, detail = "Finalizing results...")
       list(net_worth = net_worth,
            annual_savings = annual_savings,
            savings_rate = savings_rate,
@@ -290,6 +298,7 @@ financialPlanningCalcServer <- function(id) {
            req_monthly = req_monthly,
            insurance_status = insurance_status,
            emergency_status = emergency_status)
+      })
     }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
     # Summary text output with recommendations
@@ -360,12 +369,30 @@ financialPlanningCalcServer <- function(id) {
     
     output$scheduleTable <- renderDataTable({
       df <- scheduleData()
+      
+      # Compute additional columns to match the Excel download:
+      total_principal <- input$savings + input$portfolio
+      annual_savings <- input$income - (input$expenses * 12)
+      df$Cumulative_Contributions <- total_principal + annual_savings * df$Year
+      df$Total_Interest <- df$Nominal - df$Cumulative_Contributions
+      # Optionally add a Month-Year column if needed (for yearly data, you might label it as "Year Label")
+      df$Month_Year <- paste0("Year ", df$Year)
+      
+      # Format monetary columns
       df$Nominal <- scales::dollar(df$Nominal)
       df$Real <- scales::dollar(df$Real)
+      df$Cumulative_Contributions <- scales::dollar(df$Cumulative_Contributions)
+      df$Total_Interest <- scales::dollar(df$Total_Interest)
       if("Retirement" %in% colnames(df))
         df$Retirement <- scales::dollar(df$Retirement)
+      
       df
-    })
+    }, options = list(
+      scrollX = TRUE,      # Enable horizontal scrolling
+      scrollY = '400px',   # Set vertical scrolling with fixed height
+      paging = FALSE       # Show full dataset in a scrollable table
+    ))
+
     
     # Nominal Projection Plot
     output$nominalPlot <- renderPlotly({
