@@ -103,19 +103,11 @@ personalInvestmentCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    observeEvent(input$calculate, {
-      # Your existing calculation logic here
-       
-      # Scroll to projection box
-      shinyjs::runjs(
-        sprintf(
-          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
-          ns("ResultsSummary")
-         )
-      )
-    })
-    # Reactive calculation: Compute the monthly schedule and summary values
+    # Reactive calculation with progress bar
     calculate_investment <- eventReactive(input$calculate, {
+      withProgress(message = 'Calculating investment growth...', value = 0, {
+        n <- 3  # Number of major steps
+
       # Convert inputs to numeric values
       initial      <- as.numeric(input$initial)
       monthly      <- as.numeric(input$contribution)
@@ -125,13 +117,16 @@ personalInvestmentCalcServer <- function(id) {
       months       <- years * 12
       inflation_rate <- as.numeric(input$inflation) / 100
       goal         <- as.numeric(input$goal)
+      incProgress(1/n, detail = 'Processing inputs...')
       
       # --- Closed-Form Calculations for Summary ---
       # Future Value of Initial Investment using compound interest formula:
       fv_initial <- initial * (1 + monthly_rate)^(months)
       
       # Future Value of Regular Contributions (Annuity Formula):
-      fv_annuity <- if(monthly_rate == 0) { monthly * months } else { 
+      fv_annuity <- if(monthly_rate == 0) { 
+        monthly * months 
+      } else { 
         monthly * ((1 + monthly_rate)^(months) - 1) / monthly_rate 
       }
       
@@ -140,19 +135,27 @@ personalInvestmentCalcServer <- function(id) {
       
       # Inflation-Adjusted (Real) Future Value:
       total_real <- total_nominal / ((1 + inflation_rate)^(years))
-      
+      incProgress(1/n, detail = 'Performing calculations...')
+
       # --- Monthly Schedule (for plots and table) ---
-      schedule <- data.frame(Month = 1:months, Nominal = numeric(months), Real = numeric(months))
+      schedule <- data.frame(
+        Month = 1:months, 
+        Nominal = numeric(months), 
+        Real = numeric(months)
+      )
+
       # Use an iterative approach to simulate month-by-month growth
       schedule$Nominal[1] <- initial * (1 + monthly_rate) + monthly
       if(months > 1) {
         for (i in 2:months) {
           schedule$Nominal[i] <- (schedule$Nominal[i - 1] + monthly) * (1 + monthly_rate)
+          incProgress(1/(n * months), detail = paste('Calculating month', i, 'of', months))
         }
       }
       # Adjust each month’s nominal value for inflation (using monthly approximation)
       schedule$Real <- schedule$Nominal / ((1 + inflation_rate)^((schedule$Month)/12))
-      
+      incProgress(1/n, detail = 'Finalizing results...')
+
       list(
         schedule = schedule,
         fv_initial = fv_initial,
@@ -161,7 +164,18 @@ personalInvestmentCalcServer <- function(id) {
         total_real = total_real,
         goal = goal
       )
+      })
     }, ignoreInit = FALSE, ignoreNULL = FALSE)
+
+    # Scroll to projection box when compute is pressed
+    observeEvent(input$calculate, {
+      shinyjs::runjs(
+        sprintf(
+          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
+          ns("ResultsSummary")
+        )
+      )
+    })    
     
     # Nominal Growth Plot
     output$growthPlot_nominal <- renderPlotly({
@@ -185,13 +199,30 @@ personalInvestmentCalcServer <- function(id) {
                margin = list(l = 50, r = 50, b = 50, t = 50))
     })
     
-    # Summary Table of monthly values
+    # Summary Table of monthly values with additional columns
     output$summaryTable <- renderDataTable({
       df <- calculate_investment()$schedule
+      
+      # Add additional columns to match the download version
+      df$Cumulative_Contributions <- cumsum(rep(input$contribution, nrow(df)))
+      df$Total_Contributions <- input$initial + df$Cumulative_Contributions
+      df$Total_Interest_Earned <- df$Nominal - df$Total_Contributions
+      df$Month_Year <- format(seq(Sys.Date(), by = "month", length.out = nrow(df)), "%Y-%m")
+      
+      # Format the monetary columns
       df$Nominal <- scales::dollar(df$Nominal)
       df$Real <- scales::dollar(df$Real)
+      df$Cumulative_Contributions <- scales::dollar(df$Cumulative_Contributions)
+      df$Total_Contributions <- scales::dollar(df$Total_Contributions)
+      df$Total_Interest_Earned <- scales::dollar(df$Total_Interest_Earned)
+      
       df
-    })
+    }, options = list(
+      scrollX = TRUE,      # Enable horizontal scrolling
+      scrollY = '400px',   # Enable vertical scrolling with a fixed height
+      paging = FALSE       # Disable pagination so the scroll appears over the full dataset
+    ))
+
     
     # Investment Summary and Recommendation Text
     output$investment_summary <- renderUI({
