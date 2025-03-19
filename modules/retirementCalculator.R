@@ -218,7 +218,7 @@ retirementCalcServer <- function(id) {
       shinyjs::runjs(
         sprintf(
           "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
-          ns("savingsBox")
+          ns("resultText")
          )
       )
     })
