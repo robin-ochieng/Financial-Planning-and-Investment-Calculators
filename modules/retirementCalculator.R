@@ -154,19 +154,19 @@ retirementCalcUI <- function(id) {
       ),
       fluidRow(
         box(
+          title = "Retirement Summary & Recommendations",
+          status = "info",
+          width = 12,
+          htmlOutput(ns("resultText"))
+        )
+      ),
+      fluidRow(
+        box(
           title = "Retirement Savings Projection",
           status = "secondary",   
           width = 12, 
           id = ns("savingsBox"),
           plotlyOutput(ns("savingsPlot"))
-        )
-      ),
-      fluidRow(
-        box(
-          title = "Retirement Summary & Recommendations",
-          status = "info",
-          width = 12,
-          htmlOutput(ns("resultText"))
         )
       )
   )
