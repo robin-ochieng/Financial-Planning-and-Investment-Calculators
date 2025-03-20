@@ -21,27 +21,27 @@ goalSettings <- list(
 financialPlanningCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
-    shinyjs::useShinyjs(),
-    # Include Google Translate scripts in the header
-    tags$head(
-      tags$script(src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"),
-      tags$script(HTML("
-        function googleTranslateElementInit() {
-          new google.translate.TranslateElement({
-            pageLanguage: 'en', 
-            autoDisplay: false
-          }, 'google_translate_element');
-        }
-      "))
-    ),
-    # Position the Google Translate widget off-screen so it's still accessible
-    tags$div(id = "google_translate_element", style = "position: absolute; left: -9999px;"),
-    fluidRow(
-      column(width = 12, align = "right",
-             actionButton(ns("translate"), "Translate to French", class = "btn-secondary control-button-translate"),
-             actionButton(ns("toggleLanguages"), "More Language Options", class = "btn-secondary control-button-translate")
-      )
-    ),
+    # shinyjs::useShinyjs(),
+    # # Include Google Translate scripts in the header
+    # tags$head(
+    #   tags$script(src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"),
+    #   tags$script(HTML("
+    #     function googleTranslateElementInit() {
+    #       new google.translate.TranslateElement({
+    #         pageLanguage: 'en', 
+    #         autoDisplay: false
+    #       }, 'google_translate_element');
+    #     }
+    #   "))
+    # ),
+    # # Position the Google Translate widget off-screen so it's still accessible
+    # tags$div(id = "google_translate_element", style = "position: absolute; left: -9999px;"),
+    # fluidRow(
+    #   column(width = 12, align = "right",
+    #          actionButton(ns("translate"), "Translate to French", class = "btn-secondary control-button-translate"),
+    #          actionButton(ns("toggleLanguages"), "More Language Options", class = "btn-secondary control-button-translate")
+    #   )
+    # ),
     fluidRow(
       column(
         width = 12,
@@ -246,41 +246,41 @@ financialPlanningCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # When Translate button is clicked, trigger translation using the dropdown
-    observeEvent(input$translate, {
-      shinyjs::runjs("
-        function triggerTranslation() {
-          var combo = document.querySelector('.goog-te-combo');
-          if (combo) {
-            combo.value = 'fr';
-            // Create and dispatch a change event to trigger translation
-            var event = document.createEvent('HTMLEvents');
-            event.initEvent('change', true, true);
-            combo.dispatchEvent(event);
-          } else {
-            console.log('Google Translate combo element not found.');
-          }
-        }
-        // Allow extra time for the widget to load
-        setTimeout(triggerTranslation, 1500);
-      ")
-    })
+    # # When Translate button is clicked, trigger translation using the dropdown
+    # observeEvent(input$translate, {
+    #   shinyjs::runjs("
+    #     function triggerTranslation() {
+    #       var combo = document.querySelector('.goog-te-combo');
+    #       if (combo) {
+    #         combo.value = 'fr';
+    #         // Create and dispatch a change event to trigger translation
+    #         var event = document.createEvent('HTMLEvents');
+    #         event.initEvent('change', true, true);
+    #         combo.dispatchEvent(event);
+    #       } else {
+    #         console.log('Google Translate combo element not found.');
+    #       }
+    #     }
+    #     // Allow extra time for the widget to load
+    #     setTimeout(triggerTranslation, 1500);
+    #   ")
+    # })
 
-    # Button to toggle visibility of the language options (with scrolling).
-    observeEvent(input$toggleLanguages, {
-      shinyjs::runjs("
-        var el = document.getElementById('google_translate_element');
-        // If currently hidden off-screen, make it visible and scrollable.
-        if (el.style.left === '-9999px') {
-          el.style.left = '0';
-          el.style.position = 'relative';
-          el.style.maxHeight = '300px';
-          el.style.overflowY = 'auto';
-        } else {
-          el.style.left = '-9999px';
-        }
-      ")
-    })
+    # # Button to toggle visibility of the language options (with scrolling).
+    # observeEvent(input$toggleLanguages, {
+    #   shinyjs::runjs("
+    #     var el = document.getElementById('google_translate_element');
+    #     // If currently hidden off-screen, make it visible and scrollable.
+    #     if (el.style.left === '-9999px') {
+    #       el.style.left = '0';
+    #       el.style.position = 'relative';
+    #       el.style.maxHeight = '300px';
+    #       el.style.overflowY = 'auto';
+    #     } else {
+    #       el.style.left = '-9999px';
+    #     }
+    #   ")
+    # })
     
     observeEvent(input$update, {
       # Scroll to projection box
