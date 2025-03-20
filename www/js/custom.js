@@ -31,3 +31,9 @@ Shiny.addCustomMessageHandler('scrollToElement', function(id) {
     el.scrollIntoView({ behavior: 'smooth' });
   }
 });
+
+$(document).on("click", "a.nav-link[data-widget='pushmenu']", function() {
+  $(".menu-container").toggle();
+});
+
+
