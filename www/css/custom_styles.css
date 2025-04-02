@@ -1,0 +1,154 @@
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
+    /* Set the background color of the sidebar */
+    .main-sidebar {
+        background-color: #fff !important;  /* Apply the desired color */
+        box-shadow: none !important;
+        padding-top: 0;
+        border-top: none;
+        border-bottom: none;
+        width: 260px;
+    }
+    
+    .control-button {
+       font-size: 14px;
+       margin-right: 10px; 
+       margin-left: 10px; 
+       background-color: white;
+       color: #0137A6; 
+       border: 1px solid #0137A6; 
+       padding: 8px 16px;
+       border-radius: 5px;
+       cursor: pointer;
+    }
+
+    .control-button-translate {
+      font-size: 11px;
+      margin-right: 7px; 
+      margin-left: 7px; 
+      margin-bottom: 10px;
+      background-color: white;
+      color: #0137A6; 
+      border: 1px solid #0137A6; 
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+   }
+
+    .control-button1 {
+      font-size: 14px;
+      margin-right: 10px; 
+      margin-left: 10px; 
+      background-color: #0dcaf0;
+      color: #FFFFFF; 
+      border: 1px solid #0137A6; 
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+   }
+
+    
+
+    .header-title-container {
+       display: flex;
+       align-items: center;
+       justify-content: center; /* Align items to the start of the container */
+       margin-left: 0; /* Match the sidebar width */
+       position: relative; /* Ensure the container is positioned correctly */
+       width: 240px; /* Match the width of the sidebar-footer */
+       padding: 4px 6px; /* Add padding to give some space around the title */
+       background-color: #fff; /* Light background color to distinguish the title area */
+       border-radius: 6px; /* Optional: Add rounded corners for a modern look */
+       border: 1px solid #969696; 
+       box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25); /* Subtle shadow for a more professional look */
+    }
+     
+     .header-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #000000;
+      padding-top: 5px; /* Space after the vertical line */
+     }
+
+  .menu-container {
+      display: block; /* Align items to the start of the container */
+      position: fixed; /* Ensure the container is positioned correctly */    
+      top: 200px;  /* Aligns to the top of the viewport */
+      left: 0; 
+      width: 260px; /* Match the width of the sidebar-footer */
+      padding: 10px 5px; /* Add padding to give some space around the title */
+      background-color: #fff; /* Light background color to distinguish the title area */
+      border-radius: 8px; /* Optional: Add rounded corners for a modern look */
+      font-family: 'Nunito', sans-serif;
+      z-index: 1050; /* Ensure the container is above the sidebar */
+  }
+
+  /* Style the clock container */
+  .clock-container {
+    list-style-type: none;
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;  /* Positions the clock on the far right */
+    align-items: center;
+    margin-right: 3px;         /* Adjust spacing as desired */
+  }
+  
+  /* Style the clock text */
+  #dynamic-clock {
+    font-size: 12px;
+    color: #000000;
+    border: 1px solid #969696;
+    padding: 8px 16px;
+    border-radius: 5px;
+  }
+
+  .page-title {
+    text-align: center;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    background-color: #fff; 
+    padding: 10px; 
+    border-radius: 10px;
+}
+
+/* Target the menu item text in the sidebar */
+.nav-sidebar .nav-item > .nav-link > p {
+  font-size: 10px !important;
+}
+
+/* Target the menu item icon in the sidebar */
+/* custom_styles.css */
+.logos {
+  position: absolute;
+  top: 5px;     /* Changed from bottom to top */
+  left: 5px;    /* Positioning from the left */
+  display: flex; /* Align images side by side */
+  gap: 20px;     /* Optional: add spacing between images */
+  padding: 10px;
+}
+
+/* custom_styles.css */
+.afdb-logo {
+  height: 100px;
+}
+
+
+.logos img {
+  height: 50px;
+}
+
+
+
+
+/* Hide the .menu-container on smaller screens */
+@media (max-width: 768px) {
+  .hamburger-icon {
+      display: block; /* Show icon */
+  }
+
+  .menu-container {
+      display: none; /* This will hide the menu-container on screens smaller than 768px */
+  }
+}
+
+
