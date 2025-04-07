@@ -244,6 +244,15 @@ estatePlanningCalcUI <- function(id) {
         id = ns("EstateSummary"),
         uiOutput(ns("summaryUI"))
       )
+    ),
+    fluidRow(
+      bs4Card(
+        title = "Distribution Chart",
+        status = "info",
+        width = 12,
+        collapsible = TRUE,
+        plotlyOutput(ns("distributionPlot"), height = "400px")
+      )
     )
   )
 }
@@ -495,6 +504,33 @@ estatePlanningCalcServer <- function(id) {
           "</div>"
         )
       }
+      # -----------------------------
+      # 1) Key Action Items (NEW!)
+      # -----------------------------
+      # This is a simple static list of suggestions.
+      # You could make them dynamic, e.g.:
+      #   if (sitems[["Final Estate"]] < 0) show some items, else hide them, etc.
+      action_items <- paste0(
+        "<h4 style='margin-top: 20px; color: #2c3e50;'>Key Action Items</h4>",
+        "<ul style='list-style-type: disc; margin-left: 20px; font-size: 15px;'>",
+          "<li>Consider drafting or updating a will/trust if you haven't already.</li>",
+          "<li>Review or update beneficiary designations on insurance policies and retirement accounts.</li>",
+          "<li>Consult a financial advisor or attorney for specialized estate planning strategies.</li>",
+          "<li>Ensure your life insurance coverage matches your estate's needs.</li>",
+          "<li>Revisit your plan every few years or after major life changes (marriage, child, etc.).</li>",
+        "</ul>"
+      )
+
+      # Example of conditional logic: If final estate is negative, show an additional bullet
+      # Let's say sitems[["Final Estate"]] is negative => user has more debts than assets
+      if (sitems[["Final Estate"]] < 0) {
+        action_items <- paste0(
+          action_items,
+          "<div style='margin-top: 10px; color: #d9534f;'>",
+            "<strong>Note:</strong> Your final estate is negative. You may wish to focus on reducing liabilities.",
+          "</div>"
+        )
+      }
 
       # Construct final HTML
       HTML(paste0(
@@ -510,8 +546,39 @@ estatePlanningCalcServer <- function(id) {
 
           warning_html,  # place the warning below the list if needed
 
+          action_items,  # Add the new Key Action Items block
+
         "</div>"
       ))
     })
+
+    # Inside estatePlanningCalcServer, after computing spouse_distribution, children_distribution, others_distribution:
+
+      output$distributionPlot <- renderPlotly({
+        req(estatePlan())  # Ensure calculations exist
+        plan <- estatePlan()
+        cur <- input$currency
+        
+        # Construct a small data frame with labels and amounts
+        distribution_df <- data.frame(
+          Beneficiary = c("Spouse", "Children", "Others"),
+          Amount = c(
+            plan$summary_items[["Spouse Distribution"]],
+            plan$summary_items[["Children Distribution"]],
+            plan$summary_items[["Other Heirs Distribution"]]
+          )
+        )
+        
+        # Convert amounts to actual numeric
+        distribution_df$Amount <- as.numeric(distribution_df$Amount)
+        
+        plot_ly(distribution_df, labels = ~Beneficiary, values = ~Amount, type = "pie") %>%
+          layout(
+            title = list(text = "Final Estate Distribution by Beneficiary"),
+            legend = list(orientation = 'h')  # e.g., place legend horizontally at bottom
+          )
+      })
+
+
  })
 }
