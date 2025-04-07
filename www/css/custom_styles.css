@@ -114,6 +114,7 @@
 /* Target the menu item text in the sidebar */
 .nav-sidebar .nav-item > .nav-link > p {
   font-size: 10px !important;
+  font-weight: bold !important;
 }
 
 /* Target the menu item icon in the sidebar */
