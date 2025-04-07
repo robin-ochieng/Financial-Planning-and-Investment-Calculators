@@ -40,6 +40,26 @@ irrCalcUI <- function(id) {
         )
       )
     ),
+    # NEW: Currency Selector
+    fluidRow(
+      hr(),
+      column(
+        width = 4,
+        bs4Dash::tooltip(
+          shiny::tagAppendAttributes(
+            selectInput(
+              ns("currency"), 
+              label = "Select Preferred Currency", 
+              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"), 
+              selected = "USD"
+            ),
+            `data-trigger` = "click"
+          ),
+          title = "Select the currency in which results should be displayed",
+          placement = "right"
+        )
+      )
+    ),
     fluidRow(
       box(
         status = "success",
@@ -50,7 +70,7 @@ irrCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("current_age"), "Current Age", value = 45, min = 18, max = 100),
+          numericInput(ns("current_age"), "Current Age", value = 50, min = 18, max = 100),
           title = "Enter your current age in years.",
           placement = "right"
         ),
@@ -60,12 +80,12 @@ irrCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("salary"), label = "Current Monthly Salary (USD):", value = 250000, decimalPlaces = 0, digitGroupSeparator = ","),
+          autonumericInput(inputId = ns("salary"), label = "", value = 65000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter your current monthly salary.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("contribution_rate"), "Total Contribution Rate (%)", value = 25, min = 0, max = 100),
+          numericInput(ns("contribution_rate"), "Total Contribution Rate (%)", value = 30, min = 0, max = 100),
           title = "Enter the percentage of your salary that you contribute to your retirement fund.",
           placement = "right"
         ),
@@ -75,12 +95,12 @@ irrCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("salary_escalation"), "Salary Escalation (%)", value = 3, min = 0, max = 100),
+          numericInput(ns("salary_escalation"), "Salary Escalation (%)", value = 8, min = 0, max = 100),
           title = "Enter the expected annual increase in your salary.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("fund_balance"), label = "Current Fund Balance (USD):", value = 8000000, decimalPlaces = 0, digitGroupSeparator = ","),
+          autonumericInput(inputId = ns("fund_balance"), label = "", value = 10000000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter the current balance of your retirement fund.",
           placement = "right"
         )
@@ -89,22 +109,22 @@ irrCalcUI <- function(id) {
         status = "success",
         title = "Retirement Income & Assumptions", width = 6, height = "700px",
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("social_security"), label = "Social Security (USD/year):", value = 20000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "Enter your expected annual Social Security benefit in USD.",
+          autonumericInput(inputId = ns("social_security"), label = "", value = 80000, decimalPlaces = 0, digitGroupSeparator = ","),
+          title = "Enter your expected annual Social Security benefit.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("pension_income"), label = "Pension (USD/year):", value = 10000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "Enter your expected annual pension income in USD.",
+          autonumericInput(inputId = ns("pension_income"), label = "", value = 200000, decimalPlaces = 0, digitGroupSeparator = ","),
+          title = "Enter your expected annual pension income.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("savings_withdrawal"), label = "Retirement Savings Withdrawal (USD/year):", value = 25000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "Enter the expected annual withdrawal from your retirement savings in USD.",
+          autonumericInput(inputId = ns("savings_withdrawal"), label = "", value = 90000, decimalPlaces = 0, digitGroupSeparator = ","),
+          title = "Enter the expected annual withdrawal from your retirement savings.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("desired_IRR"), "Desired Income Replacement Ratio (%)", value = 80, min = 0, max = 100),
+          numericInput(ns("desired_IRR"), "Desired Income Replacement Ratio (%)", value = 55, min = 0, max = 100),
           title = "Enter the desired percentage of your pre-retirement income you wish to replace during retirement.",
           placement = "right"
         ),
@@ -136,7 +156,7 @@ irrCalcUI <- function(id) {
         status = "success",
         width = 12, 
         id = ns("Results"),
-        height = "700px",
+        height = "900px",
         fluidRow(
           style = "margin-bottom: 10px;", 
           # 1) Title text output
@@ -177,6 +197,62 @@ irrCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # Reactive that returns the user-selected currency
+    selectedCurrency <- reactive({
+      input$currency  # e.g., "USD", "EUR", etc.
+    })
+
+    # (A) HELPER: Map currency code to symbol
+    currencySymbol <- function(cur) {
+      switch(cur,
+        "USD" = "$",
+        "EUR" = "€",
+        "GBP" = "£",
+        "JPY" = "¥",
+        "CHF" = "Fr",
+        "CAD" = "C$",
+        "AUD" = "A$",
+        "KES" = "KSh.",
+        cur  # fallback: just show the code
+      )
+    }
+
+    # (B) HELPER: Format numeric values with the appropriate currency symbol
+    #    For example, formatCurrency(12345.67, "USD") => "$ 12,346"
+    formatCurrency <- function(amount, cur) {
+      sym <- currencySymbol(cur)
+      # We'll round to 0 decimals for consistency with your existing code
+      paste0(sym, " ", format(round(amount, 0), big.mark = ","))
+    }
+
+    # 1) Dynamically update the input labels so they reflect the selected currency
+    observe({
+      cur <- selectedCurrency()
+      # Salary label
+      updateAutonumericInput(session, "salary",
+        label = paste("Current Monthly Salary (", cur, "):", sep = "")
+      )
+      # Fund balance label
+      updateAutonumericInput(session, "fund_balance",
+        label = paste("Current Fund Balance (", cur, "):", sep = "")
+      )
+      # Social Security label
+      updateAutonumericInput(session, "social_security",
+        label = paste("Social Security (", cur, "/year):", sep = "")
+      )
+      # Pension label
+      updateAutonumericInput(session, "pension_income",
+        label = paste("Pension (", cur, "/year):", sep = "")
+      )
+      # Savings withdrawal label
+      updateAutonumericInput(session, "savings_withdrawal",
+        label = paste("Retirement Savings Withdrawal (", cur, "/year):", sep = "")
+      )
+    })
+
+    # --------------------
+    # TRANSLATE BUTTON
+    # --------------------
     # When Translate button is clicked, trigger translation using the dropdown
     observeEvent(input$translate, {
       shinyjs::runjs("
@@ -266,51 +342,111 @@ irrCalcServer <- function(id) {
       # 1) IRR Title 
       # ---------------------------
       output$income_ratio_title <- renderUI({
-        # Use rounded values for display
-        desired_disp <- scales::dollar(round(desired_IRR_value_adj, 0))
-        after_tax_disp <- scales::dollar(round(after_tax_income_adj, 0))
-        shortfall_disp <- scales::dollar(round(shortfall, 0))
+        desired_disp    <- formatCurrency(desired_IRR_value_adj, input$currency)
+        after_tax_disp  <- formatCurrency(after_tax_income_adj, input$currency)
+        shortfall_disp  <- formatCurrency(shortfall, input$currency)
         
         if (shortfall > 0) {
+          # If there's a shortfall
           HTML(paste0(
-            "<div style='font-family: \"Nunito\", sans-serif; color: #333;'>",
-            "<h4 style='margin-top: 0;'>", input$name, "</h4>",
-            "<p>Your projected retirement income of <strong style='color: #d9534f;'>", after_tax_disp, 
-            "</strong> per year is <span style='color: #d9534f;'>below</span> your desired replacement of <strong>", 
-            desired_disp, "</strong> per year.</p>",
-            "<p><em>Shortfall:</em> <strong>", shortfall_disp, "</strong> per year.</p>",
+            "<div style='font-family: \"Nunito\", sans-serif; color: #333; ",
+            "border-left: 6px solid #d9534f; padding: 15px; background-color: #f8f9fa; ",
+            "border-radius: 6px; margin-bottom: 15px;'>",
+              "<h4 style='margin-top: 0; margin-bottom: 10px; ",
+                "font-weight: bold; color: #d9534f;'>",
+                "<i class='fa fa-exclamation-triangle' style='margin-right: 5px;'></i>",
+                input$name,
+              "</h4>",
+              
+              "<p style='font-size: 16px; margin-bottom: 10px;'>",
+                "Your projected retirement income of <strong style='color: #d9534f;'>", after_tax_disp, 
+                "</strong> per year is <span style='color: #d9534f;'>below</span> ",
+                "your desired replacement of <strong>", desired_disp, "</strong> per year.",
+              "</p>",
+
+              "<p style='font-size: 16px; margin-bottom: 0;'>",
+                "<em>Shortfall:</em> <strong>", shortfall_disp, "</strong> per year.",
+              "</p>",
             "</div>"
           ))
         } else {
+          # If there's no shortfall
           HTML(paste0(
-            "<div style='font-family: \"Nunito\", sans-serif; color: #333;'>",
-            "<h4 style='margin-top: 0;'>", input$name, "</h4>",
-            "<p>Your projected retirement income of <strong style='color: #5cb85c;'>", after_tax_disp, 
-            "</strong> per year meets or exceeds your desired replacement of <strong>", 
-            desired_disp, "</strong> per year.</p>",
+            "<div style='font-family: \"Nunito\", sans-serif; color: #333; ",
+            "border-left: 6px solid #5cb85c; padding: 15px; background-color: #f8f9fa; ",
+            "border-radius: 6px; margin-bottom: 15px;'>",
+              "<h4 style='margin-top: 0; margin-bottom: 10px; ",
+                "font-weight: bold; color: #5cb85c;'>",
+                "<i class='fa fa-check-circle' style='margin-right: 5px;'></i>",
+                input$name,
+              "</h4>",
+              
+              "<p style='font-size: 16px; margin-bottom: 0;'>",
+                "Your projected retirement income of <strong style='color: #5cb85c;'>", after_tax_disp, 
+                "</strong> per year meets or exceeds your desired replacement of <strong>", 
+                desired_disp, "</strong> per year.",
+              "</p>",
             "</div>"
           ))
         }
       })
 
 
-      
-      # ---------------------------
-      # 2) Financial List (as an unordered list)
-      # ---------------------------
-      output$financial_list <- renderUI({
-        HTML(paste0(
-          "<div style='font-family: \"Nunito\", sans-serif; font-size: 16px; color: #333; line-height: 1.5;'>",
-            "<ul style='list-style-type: none; padding-left: 0;'>",
-              "<li style='margin-bottom: 10px;'><strong>Total Retirement Income:</strong> ", scales::dollar(total_ret_income), " per year</li>",
-              "<li style='margin-bottom: 10px;'><strong>After-Tax Income:</strong> ", scales::dollar(after_tax_income), " per year</li>",
-              "<li style='margin-bottom: 10px;'><strong>Desired IRR (Annual Replacement):</strong> ", scales::dollar(desired_IRR_value), " per year</li>",
-              "<li style='margin-bottom: 10px;'><strong>Inflation Factor (over ", years_to_retirement, " years):</strong> ", round(inflation_factor, 2), "</li>",
-              "<li style='margin-bottom: 20px;'><strong>Shortfall:</strong> ", scales::dollar(shortfall), " per year</li>",
-            "</ul>",
-          "</div>"
-        ))
-      })
+
+        output$financial_list <- renderUI({
+          HTML(paste0(
+            "<div style='font-family: \"Nunito\", sans-serif; font-size: 16px; color: #333; line-height: 1.5;'>",
+              "<ul style='list-style-type: none; padding-left: 0; margin: 0;'>",
+                
+                # Total Retirement Income
+                "<li style='margin-bottom: 10px; background-color: #f8f9fa; ",
+                "padding: 12px; border-left: 4px solid #5cb85c; border-radius: 4px;'>",
+                  "<i class='fa fa-money-bill-wave' style='margin-right: 5px; color: #5cb85c;'></i>",
+                  "<strong>Total Retirement Income:</strong> ",
+                  formatCurrency(total_ret_income, input$currency), 
+                  " per year",
+                "</li>",
+                
+                # After-Tax Income
+                "<li style='margin-bottom: 10px; background-color: #f8f9fa; ",
+                "padding: 12px; border-left: 4px solid #007bff; border-radius: 4px;'>",
+                  "<i class='fa fa-money-bill-wave' style='margin-right: 5px; color: #007bff;'></i>",
+                  "<strong>After-Tax Income:</strong> ",
+                  formatCurrency(after_tax_income, input$currency), 
+                  " per year",
+                "</li>",
+                
+                # Desired IRR
+                "<li style='margin-bottom: 10px; background-color: #f8f9fa; ",
+                "padding: 12px; border-left: 4px solid #f0ad4e; border-radius: 4px;'>",
+                  "<i class='fa fa-percentage' style='margin-right: 5px; color: #f0ad4e;'></i>",
+                  "<strong>Desired IRR (Annual Replacement):</strong> ",
+                  formatCurrency(desired_IRR_value, input$currency),
+                  " per year",
+                "</li>",
+                
+                # Inflation Factor
+                "<li style='margin-bottom: 10px; background-color: #f8f9fa; ",
+                "padding: 12px; border-left: 4px solid #6f42c1; border-radius: 4px;'>",
+                  "<i class='fa fa-chart-line' style='margin-right: 5px; color: #6f42c1;'></i>",
+                  "<strong>Inflation Factor (over ", years_to_retirement, " years):</strong> ",
+                  round(inflation_factor, 2),
+                "</li>",
+                
+                # Shortfall
+                "<li style='margin-bottom: 20px; background-color: #f8f9fa; ",
+                "padding: 12px; border-left: 4px solid #d9534f; border-radius: 4px;'>",
+                  "<i class='fa fa-exclamation-triangle' style='margin-right: 5px; color: #d9534f;'></i>",
+                  "<strong>Shortfall:</strong> ",
+                  formatCurrency(shortfall, input$currency),
+                  " per year",
+                "</li>",
+                
+              "</ul>",
+            "</div>"
+          ))
+        })
+
 
       
       # ---------------------------
@@ -320,27 +456,58 @@ irrCalcServer <- function(id) {
         # Calculate ratio as percentage of desired replacement met by after-tax income
         ratio <- round((after_tax_income_adj / desired_IRR_value_adj) * 100, 0)
         ratio <- max(min(ratio, 100), 0)
-        bar_color <- if (ratio < 60) {
-          "bg-danger"
+        
+        # Determine color-coded thresholds
+        if (ratio < 60) {
+          bar_color        <- "bg-danger"   # progress bar class
+          replacement_text <- "Insufficient"
+          text_color       <- "#d9534f"
         } else if (ratio < 80) {
-          "bg-warning"
+          bar_color        <- "bg-warning"
+          replacement_text <- "Adequate"
+          text_color       <- "#f0ad4e"
         } else {
-          "bg-success"
+          bar_color        <- "bg-success"
+          replacement_text <- "Sufficient"
+          text_color       <- "#5cb85c"
         }
-        tags$div(
-          class = "progress",
-          style = "height: 30px; margin-bottom: 20px;",
+        
+        # Create the UI output with a descriptive message and the progress bar
+        tagList(
           tags$div(
-            class = paste("progress-bar", bar_color),
-            role = "progressbar",
-            style = paste0("width: ", ratio, "%;"),
-            `aria-valuenow` = ratio,
-            `aria-valuemin` = 0,
-            `aria-valuemax` = 100,
-            paste0(ratio, "%")
+            style = paste0(
+              "background-color: #f8f9fa; ",
+              "border-left: 6px solid ", text_color, "; ",
+              "padding: 15px; margin-bottom: 15px; border-radius: 6px;"
+            ),
+            # Optionally add an icon for each scenario (uncomment if you like):
+            # If you want a different icon for each threshold, you can branch as well
+            # e.g. if (ratio < 60) icon = "fa-exclamation-triangle" else ...
+            # For simplicity, let's show one icon for all:
+            # "<i class='fa fa-chart-line' style='margin-right: 5px; color:", text_color, ";'></i>"
+            
+            tags$div(
+              style = paste0("margin-bottom: 10px; font-size: 22px; font-weight: bold; color:", text_color, ";"),
+              paste0("Your Income Replacement Ratio is ", replacement_text, ": ", ratio, "%")
+            ),
+            
+            tags$div(
+              class = "progress",
+              style = "height: 30px; margin-bottom: 0;",
+              tags$div(
+                class = paste("progress-bar", bar_color),
+                role = "progressbar",
+                style = paste0("width: ", ratio, "%;"),
+                `aria-valuenow` = ratio,
+                `aria-valuemin` = 0,
+                `aria-valuemax` = 100,
+                paste0(ratio, "%")
+              )
+            )
           )
         )
       })
+
       
       output$progress_bar_message <- renderUI({
         tags$div(
@@ -359,14 +526,34 @@ irrCalcServer <- function(id) {
       # ---------------------------
       output$disclaimer <- renderUI({
         tags$div(
-          style = "background-color: #f9f9f9; border-radius: 5px; padding: 15px; margin-top: 20px;",
-          h4("Disclaimer", style = "font-weight: bold; margin-bottom: 10px;"),
+          style = paste0(
+            "background-color: #f8f9fa; ",
+            "border-left: 6px solid #f0ad4e; ",  # 'warning' color, tweak as you like
+            "padding: 15px; ",
+            "margin-top: 20px; ",
+            "border-radius: 6px;"
+          ),
+          
+          # Heading row: icon + "Disclaimer"
+          tags$div(
+            style = "display: flex; align-items: center; margin-bottom: 10px;",
+            tags$i(
+              class = "fa fa-exclamation-circle",
+              style = "font-size: 24px; margin-right: 8px; color: #f0ad4e;"  # match the left border color
+            ),
+            tags$h4("Disclaimer", style = "font-weight: bold; margin: 0;")
+          ),
+          
+          # Body text
           p(
-            style = "font-size: 14px; color: #333;",
-            "Note: This calculator is provided as a guide only. The projections are based on your inputs and assumptions. They do not account for changes in market conditions, tax laws, or personal circumstances. Please consult a financial adviser for personalized advice."
+            style = "font-size: 14px; color: #333; margin-bottom: 0;",
+            "Note: This calculator is provided as a guide only. The projections are based on your inputs and assumptions. ",
+            "They do not account for changes in market conditions, tax laws, or personal circumstances. ",
+            "Please consult a financial adviser for personalized advice."
           )
         )
       })
+
     })  # End withProgress
   }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
