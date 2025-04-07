@@ -44,7 +44,7 @@ retirementCalcUI <- function(id) {
           shiny::tagAppendAttributes(
             selectInput(
               ns("currency"), 
-              label = "", 
+              label = "Select Preferred Currency", 
               choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"), 
               selected = "USD"
             ),
@@ -62,18 +62,18 @@ retirementCalcUI <- function(id) {
         status = "secondary",
         bs4Dash::tooltip(
           shiny::tagAppendAttributes(
-            textInput(ns("current_age"), label = "", value = "35"),
+            textInput(ns("current_age"), label = "Your current age", value = "35"),
             `data-trigger` = "click"),
           title = "Enter your current age in years",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("retirement_age"), label = "", value = "65"),
+          textInput(ns("retirement_age"), label = "Planned retirement age", value = "65"),
           title = "Enter the age at which you plan to retire",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("life_expectancy"), label = "", value = "85"),
+          textInput(ns("life_expectancy"), label = "Life expectancy", value = "85"),
           title = "Enter your expected age at the end of life",
           placement = "right"
         ),
@@ -94,22 +94,22 @@ retirementCalcUI <- function(id) {
         title = "Financial Details",
         status = "secondary",
         bs4Dash::tooltip(
-          textInput(ns("income_growth"), label = "", value = "3"),
+          textInput(ns("income_growth"), label = "Annual income increase (%)", value = "3"),
           title = "Enter the expected annual percentage increase in your income",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("income_needed"), label = "", value = "75"),
+          textInput(ns("income_needed"), label = "Income needed after retirement (%)", value = "75"),
           title = "Percentage of your pre-retirement income needed during retirement",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("investment_return"), label = "", value = "6"),
+          textInput(ns("investment_return"), label = "Average investment return (%)", value = "6"),
           title = "Expected annual return rate on your investments",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("inflation_rate"), label = "", value = "2"),
+          textInput(ns("inflation_rate"), label = "Inflation rate (%)", value = "2"),
           title = "Expected annual inflation rate",
           placement = "right"
         ),
@@ -119,6 +119,11 @@ retirementCalcUI <- function(id) {
         title = "Savings Details",
         status = "secondary",
         bs4Dash::tooltip(
+          textInput(ns("future_savings"), label = "Future savings (% of income)", value = "10"),
+          title = "Percentage of your income that you plan to save each year",
+          placement = "right"
+        ),
+        bs4Dash::tooltip(
           autonumericInput(
             inputId = ns("current_savings"), 
             label = "", 
@@ -127,11 +132,6 @@ retirementCalcUI <- function(id) {
             digitGroupSeparator = ","
             ),
           title = "Amount you have saved for retirement so far in USD",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          textInput(ns("future_savings"), label = "", value = "10"),
-          title = "Percentage of your income that you plan to save each year",
           placement = "right"
         ),
         bs4Dash::tooltip(
@@ -202,7 +202,7 @@ retirementCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("withdrawal_rate"), label = "", value = "4"),
+          textInput(ns("withdrawal_rate"), label = "Withdrawal Rate (%)", value = "4"),
           title = "Planned annual withdrawal rate from your retirement savings",
           placement = "right"
         ),
@@ -216,19 +216,19 @@ retirementCalcUI <- function(id) {
       ),
       fluidRow(
         box(
+          title = "Retirement Summary & Recommendations",
+          status = "info",
+          width = 12,
+          htmlOutput(ns("resultText"))
+        )
+      ),
+      fluidRow(
+        box(
           title = "Retirement Savings Projection",
           status = "secondary",   
           width = 12, 
           id = ns("savingsBox"),
           plotlyOutput(ns("savingsPlot"))
-        )
-      ),
-      fluidRow(
-        box(
-          title = "Retirement Summary & Recommendations",
-          status = "info",
-          width = 12,
-          htmlOutput(ns("resultText"))
         )
       )
   )
@@ -248,29 +248,19 @@ retirementCalcServer <- function(id) {
     # 1) Dynamically update input labels (the tooltips remain unchanged)
     # ------------------------------------------------------------------
     observe({
-      cur <- selectedCurrency()
-      
-      updateTextInput(session, "current_age", label = "Your current age")
-      updateTextInput(session, "retirement_age", label = "Planned retirement age")
-      updateTextInput(session, "life_expectancy", label = "Life expectancy")
-      
+      cur <- selectedCurrency() 
+      # Update the labels of the inputs based on the selected currency      
       updateAutonumericInput(
         session, 
         "pre_tax_income",
         label = paste("Current pre-tax income (", cur, "):", sep = "")
       )
       
-      updateTextInput(session, "income_growth", label = "Annual income increase (%)")
-      updateTextInput(session, "income_needed",  label = "Income needed after retirement (%)")
-      updateTextInput(session, "investment_return", label = "Average investment return (%)")
-      updateTextInput(session, "inflation_rate", label = "Inflation rate (%)")
-      
       updateAutonumericInput(
         session, 
         "current_savings",
         label = paste("Current retirement savings (", cur, "):", sep = "")
       )
-      updateTextInput(session, "future_savings", label = "Future savings (% of income)")
       
       updateAutonumericInput(
         session, 
@@ -302,9 +292,9 @@ retirementCalcServer <- function(id) {
         label = paste("Rental Income (", cur, "/month):", sep = "")
       )
       
-      updateTextInput(session, "withdrawal_rate", label = "Withdrawal Rate (%)")
     })
     
+    # 2) Translate button
     # When Translate button is clicked, trigger translation using the dropdown
     observeEvent(input$translate, {
       shinyjs::runjs("
@@ -341,20 +331,12 @@ retirementCalcServer <- function(id) {
       ")
     })
     
-    observeEvent(input$calculate, {
-      # Your existing calculation logic here
-      shinyjs::runjs(
-        sprintf(
-          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
-          ns("resultText")
-         )
-      )
-    })
-
+    # 3) Calculation: Run once at app launch + again when button is clicked
     calcResults <- eventReactive(input$calculate, {
       withProgress(message = 'Calculating retirement savings...', value = 0, {
       # Step 1: Convert input values to numeric
       incProgress(0.1, detail = "Processing input values...")
+      
       # Convert input values to numeric
       current_age <- as.numeric(input$current_age)
       retirement_age <- as.numeric(input$retirement_age)
@@ -415,12 +397,12 @@ retirementCalcServer <- function(id) {
         Inf
       }  # If no withdrawal needed, set duration to infinite
       
-      # Step 6: Generate recommendation
-      # Generate recommendation message
-      recommendation <- if(sustainable_withdrawal >= required_annual_withdrawal) {
-        "Your projected savings are sufficient to cover your retirement expenses."
+
+      # Step 6: Generate recommendation with conditional coloring
+      recommendation <- if (sustainable_withdrawal >= required_annual_withdrawal) {
+        "<span style='color: #27ae60; font-weight: bold;'>Your projected savings are sufficient to cover your retirement expenses.</span>"
       } else {
-        "Your projected savings may be insufficient. Consider increasing your savings rate or exploring additional income sources for retirement."
+        "<span style='color: #e74c3c; font-weight: bold;'>Your projected savings may be insufficient. Consider increasing your savings rate or exploring additional income sources for retirement.</span>"
       }
       
       incProgress(0.1, detail = "Wrapping up...")
@@ -435,8 +417,18 @@ retirementCalcServer <- function(id) {
         savings_data = data.frame(Age = current_age:retirement_age, Savings = savings)
       )
     })
-  })
+  }, ignoreInit = FALSE, ignoreNULL = FALSE) 
+
+    # 4) Smooth-scroll only after user actually clicks the button
+    observeEvent(input$calculate, ignoreInit = TRUE, {
+      # Your existing calculation logic here
+      shinyjs::runjs(sprintf(
+          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
+          ns("resultText")
+         ))
+    })
     
+    # 5) Plot
     output$savingsPlot <- renderPlotly({
       req(calcResults())
       df <- calcResults()$savings_data
@@ -457,29 +449,62 @@ retirementCalcServer <- function(id) {
                paper_bgcolor = "white")
     })
 
+    # Define your helper function somewhere in your server code or in a global file:
+    currencySymbol <- function(cur) {
+      switch(cur,
+        "USD" = "$",
+        "EUR" = "€",
+        "GBP" = "£",
+        "JPY" = "¥",
+        "CHF" = "Fr",
+        "CAD" = "C$",
+        "AUD" = "A$",
+        "KES" = "KSh.",
+        cur  # fallback: just use the code if unrecognized
+      )
+    }
+
     output$resultText <- renderUI({
       req(calcResults())
       res <- calcResults()
       cur <- selectedCurrency()
-      # Create a styled HTML output for the results
+      symbol <- currencySymbol(cur)
+
       HTML(paste0(
-        "<div style='font-family: \"Nunito\", sans-serif; color: #333; background-color: #f7f7f7; padding: 20px; border-radius: 8px;'>",
-          "<h3 style='margin-top: 0; color: #2c3e50;'>Retirement Savings Summary</h3>",
-          "<ul style='list-style-type: none; padding-left: 0; font-size: 16px;'>",
-            "<li style='margin-bottom: 10px;'><strong>Total Savings at Retirement:</strong> ", 
-              cur, " ", format(round(res$total_savings, 2), big.mark = ","), "</li>",
-            "<li style='margin-bottom: 10px;'><strong>Annual Withdrawal Needed from Savings:</strong> ", 
-              cur, " ", format(round(res$required_annual_withdrawal, 2), big.mark = ","), "</li>",
-            "<li style='margin-bottom: 10px;'><strong>Sustainable Annual Withdrawal (", input$withdrawal_rate, "% of savings):</strong> ", 
-              cur, " ", format(round(res$sustainable_withdrawal, 2), big.mark = ","), "</li>",
-            "<li style='margin-bottom: 10px;'><strong>Estimated Savings Duration:</strong> ", 
-              if (is.infinite(res$savings_duration)) "N/A" else paste0(res$savings_duration, " years"), "</li>",
+        "<div style='font-family: \"Nunito\", sans-serif; color: #333; background-color: #f7f7f7; 
+            padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+            border: 1px solid #ddd; margin-bottom: 20px;'>",
+          "<h3 style='margin-top: 0; color: #2c3e50; margin-bottom: 15px;'>Retirement Savings Summary</h3>",
+          
+          "<ul style='list-style: none; padding-left: 0; font-size: 16px; line-height: 1.5; margin-bottom: 20px;'>",
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Total Savings at Retirement:</strong> ", 
+              symbol, " ", format(round(res$total_savings, 2), big.mark = ","), 
+            "</li>",
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Annual Withdrawal Needed from Savings:</strong> ", 
+              symbol, " ", format(round(res$required_annual_withdrawal, 2), big.mark = ","), 
+            "</li>",
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Sustainable Annual Withdrawal (", input$withdrawal_rate, "% of savings):</strong> ", 
+              symbol, " ", format(round(res$sustainable_withdrawal, 2), big.mark = ","), 
+            "</li>",
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Estimated Savings Duration:</strong> ", 
+              if (is.infinite(res$savings_duration)) "N/A" else paste0(res$savings_duration, " years"), 
+            "</li>",
           "</ul>",
-          "<h4 style='margin-top: 20px; color: #2c3e50;'>Recommendation</h4>",
-          "<p style='font-size: 16px; line-height: 1.5;'>", res$recommendation, "</p>",
+          
+          "<h4 style='margin-top: 0; color: #2c3e50; margin-bottom: 10px;'>Recommendation</h4>",
+          "<p style='font-size: 16px; line-height: 1.5; margin: 0;'>", res$recommendation, "</p>",
         "</div>"
       ))
     })
+
     
   })
 }
