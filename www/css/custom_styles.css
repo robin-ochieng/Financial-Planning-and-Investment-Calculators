@@ -111,11 +111,20 @@
     border-radius: 10px;
 }
 
-/* Target the menu item text in the sidebar */
+/* Target the menu item text in the sidebar, I need the background of the selector to be a gray color */
 .nav-sidebar .nav-item > .nav-link > p {
   font-size: 10px !important;
   font-weight: bold !important;
 }
+
+/* Make the active tab have a gray background and black text */
+.nav-sidebar .nav-item > .nav-link.active {
+  background-color: #787676 !important; /* or another shade of gray */
+  color: #FFF !important;
+  border-radius: 8px;
+  border-left: 3px solid #007bff;
+}
+
 
 /* Target the menu item icon in the sidebar */
 /* custom_styles.css */
