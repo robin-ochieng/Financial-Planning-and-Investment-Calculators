@@ -38,7 +38,7 @@
       font-size: 14px;
       margin-right: 10px; 
       margin-left: 10px; 
-      background-color: #0dcaf0;
+      background-color: #27ae60;
       color: #FFFFFF; 
       border: 1px solid #0137A6; 
       padding: 8px 16px;
@@ -114,6 +114,7 @@
 /* Target the menu item text in the sidebar */
 .nav-sidebar .nav-item > .nav-link > p {
   font-size: 10px !important;
+  font-weight: bold !important; /* Make the text bold */
 }
 
 /* Target the menu item icon in the sidebar */
