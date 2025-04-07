@@ -179,13 +179,14 @@ personalInvestmentCalcServer <- function(id) {
     # 1) Dynamically update input labels to reflect selected currency
     # ----------------------------------------------------------------
     observe({
+      cur <- selectedCurrency() 
       sym <- currencySymbol(input$currency)
       updateAutonumericInput(session, "initial", 
-                             label = paste("Initial Investment (", sym, "):", sep = ""))
+                             label = paste("Initial Investment (", cur, "):", sep = ""))
       updateAutonumericInput(session, "contribution", 
-                             label = paste("Monthly Contribution (", sym, "):", sep = ""))
+                             label = paste("Monthly Contribution (", cur, "):", sep = ""))
       updateAutonumericInput(session, "goal", 
-                             label = paste("Goal Amount (", sym, "):", sep = ""))
+                             label = paste("Goal Amount (", cur, "):", sep = ""))
     })
 
 
