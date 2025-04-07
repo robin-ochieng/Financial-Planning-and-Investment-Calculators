@@ -527,7 +527,7 @@ financialPlanningCalcServer <- function(id) {
       } else {
         data.frame(Year = years, Nominal = nominal, Real = real)
       }
-    })
+    }, ignoreInit = FALSE, ignoreNULL = FALSE)
     
     output$scheduleTable <- renderDataTable({
       df <- scheduleData()
