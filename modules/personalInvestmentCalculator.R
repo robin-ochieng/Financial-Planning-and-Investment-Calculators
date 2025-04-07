@@ -34,6 +34,28 @@ personalInvestmentCalcUI <- function(id) {
         )
       )
     ),
+    # -----------------------
+    # 1) CURRENCY SELECTOR
+    # -----------------------
+    fluidRow(
+      hr(),
+      column(
+        width = 4,
+        bs4Dash::tooltip(
+          shiny::tagAppendAttributes(
+            selectInput(
+              ns("currency"), 
+              label = "Select Preferred Currency", 
+              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"), 
+              selected = "USD"
+            ),
+            `data-trigger` = "click"
+          ),
+          title = "Select the currency in which results should be displayed",
+          placement = "right"
+        )
+      )
+    ),
     fluidRow(
       # Inputs box on the left
       box(
@@ -41,12 +63,12 @@ personalInvestmentCalcUI <- function(id) {
         title = "Investment Inputs", width = 5, height = "580px", 
         # Tooltips for each field
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("initial"), label = "Initial Investment (USD):", value = 10000, decimalPlaces = 0, digitGroupSeparator = ","),
+          autonumericInput(inputId = ns("initial"), label = "", value = 100000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "The lump sum you invest at the start.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("contribution"), label = "Monthly Contribution (USD):", value = 500, decimalPlaces = 0, digitGroupSeparator = ","),
+          autonumericInput(inputId = ns("contribution"), label = "", value = 50000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "The amount you add to your investment every month.",
           placement = "right"
         ),
@@ -66,7 +88,7 @@ personalInvestmentCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("goal"), label = "Goal Amount (USD):", value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
+          autonumericInput(inputId = ns("goal"), label = "", value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "A target amount you want to achieve, which can help determine how much you need to save or invest.",
           placement = "right"
         )
@@ -85,7 +107,7 @@ personalInvestmentCalcUI <- function(id) {
           valueBoxOutput(ns("final_balance_box"), width = 12)
         ),
         fluidRow(
-          downloadButton(ns("download_excel"), "Download Investment Schedule (Excel)", class = "btn-info control-button1", style = "margin-top: 30px;")
+          downloadButton(ns("download_excel"), "Download Investment Schedule (Excel)", class = "btn-success control-button1", style = "margin-top: 10px;")
         )
       )
     ),
@@ -119,10 +141,55 @@ personalInvestmentCalcUI <- function(id) {
   )
 }
 
+
 # Module Server: Contains the reactive calculations and output renderings
 personalInvestmentCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    # ----------------------------------------------------------------
+    # A) HELPER FUNCTION: Map currency code to symbol
+    # ----------------------------------------------------------------
+    currencySymbol <- function(cur) {
+      switch(cur,
+        "USD" = "$",
+        "EUR" = "€",
+        "GBP" = "£",
+        "JPY" = "¥",
+        "CHF" = "Fr",
+        "CAD" = "C$",
+        "AUD" = "A$",
+        "KES" = "KSh.",
+        cur  # fallback if no match
+      )
+    }
+    
+    # ----------------------------------------------------------------
+    # B) HELPER FUNCTION: Format amounts using selected currency symbol
+    # ----------------------------------------------------------------
+    formatCurrency <- function(amount, cur) {
+      sym <- currencySymbol(cur)
+      paste0(sym, " ", format(round(amount, 0), big.mark = ","))
+    }
+
+    # Reactive that returns the user-selected currency
+    selectedCurrency <- reactive({
+      input$currency  # e.g., "USD", "EUR", etc.
+    })
+    
+    # ----------------------------------------------------------------
+    # 1) Dynamically update input labels to reflect selected currency
+    # ----------------------------------------------------------------
+    observe({
+      cur <- selectedCurrency() 
+      sym <- currencySymbol(input$currency)
+      updateAutonumericInput(session, "initial", 
+                             label = paste("Initial Investment (", cur, "):", sep = ""))
+      updateAutonumericInput(session, "contribution", 
+                             label = paste("Monthly Contribution (", cur, "):", sep = ""))
+      updateAutonumericInput(session, "goal", 
+                             label = paste("Goal Amount (", cur, "):", sep = ""))
+    })
 
     # # When Translate button is clicked, trigger translation using the dropdown
     # observeEvent(input$translate, {
@@ -159,7 +226,7 @@ personalInvestmentCalcServer <- function(id) {
     #     }
     #   ")
     # })
-    
+   
     # Reactive calculation with progress bar
     calculate_investment <- eventReactive(input$calculate, {
       withProgress(message = 'Calculating investment growth...', value = 0, {
@@ -236,29 +303,35 @@ personalInvestmentCalcServer <- function(id) {
     
     # Nominal Growth Plot
     output$growthPlot_nominal <- renderPlotly({
+      req(calculate_investment())  # Ensure the calculation is done before plotting
       df <- calculate_investment()$schedule
+      cur <- selectedCurrency()
       plot_ly(df, x = ~Month, y = ~Nominal, type = 'scatter', mode = 'lines',
               line = list(color = 'blue', width = 2)) %>%
         layout(title = list(text = "Nominal Investment Growth Over Time"),
                xaxis = list(title = "Months"),
-               yaxis = list(title = "Balance (USD)"),
+               yaxis = list(title = paste0("Balance (", cur, ")")),
                margin = list(l = 50, r = 50, b = 50, t = 50))
     })
     
     # Inflation-Adjusted Growth Plot
     output$growthPlot_real <- renderPlotly({
+      req(calculate_investment())  # Ensure the calculation is done before plotting
       df <- calculate_investment()$schedule
+      cur <- selectedCurrency()
       plot_ly(df, x = ~Month, y = ~Real, type = 'scatter', mode = 'lines',
               line = list(color = 'green', width = 2)) %>%
         layout(title = list(text = "Inflation-Adjusted Investment Growth Over Time"),
                xaxis = list(title = "Months"),
-               yaxis = list(title = "Balance (USD)"),
+               yaxis = list(title = paste0("Balance (", cur, ")")),
                margin = list(l = 50, r = 50, b = 50, t = 50))
     })
     
     # Summary Table of monthly values with additional columns
     output$summaryTable <- renderDataTable({
-      df <- calculate_investment()$schedule
+      req(calculate_investment())  # Ensure the calculation is done before rendering the table
+      calc <- calculate_investment()
+      df <- calc$schedule
       
       # Add additional columns to match the download version
       df$Cumulative_Contributions <- cumsum(rep(input$contribution, nrow(df)))
@@ -266,59 +339,124 @@ personalInvestmentCalcServer <- function(id) {
       df$Total_Interest_Earned <- df$Nominal - df$Total_Contributions
       df$Month_Year <- format(seq(Sys.Date(), by = "month", length.out = nrow(df)), "%Y-%m")
       
-      # Format the monetary columns
-      df$Nominal <- scales::dollar(df$Nominal)
-      df$Real <- scales::dollar(df$Real)
-      df$Cumulative_Contributions <- scales::dollar(df$Cumulative_Contributions)
-      df$Total_Contributions <- scales::dollar(df$Total_Contributions)
-      df$Total_Interest_Earned <- scales::dollar(df$Total_Interest_Earned)
+      # Format columns with our custom currency function
+      df$Nominal <- formatCurrency(df$Nominal, input$currency)
+      df$Real <- formatCurrency(df$Real, input$currency)
+      df$Cumulative_Contributions <- formatCurrency(df$Cumulative_Contributions, input$currency)
+      df$Total_Contributions <- formatCurrency(df$Total_Contributions, input$currency)
+      df$Total_Interest_Earned <- formatCurrency(df$Total_Interest_Earned, input$currency)
       
-      df
-    }, options = list(
-      scrollX = TRUE,      # Enable horizontal scrolling
-      scrollY = '400px',   # Enable vertical scrolling with a fixed height
-      paging = FALSE       # Disable pagination so the scroll appears over the full dataset
-    ))
+      datatable(
+      df,
+      options = list(
+        scrollX = TRUE,      # Enable horizontal scrolling
+        scrollY = '400px',   # Enable vertical scrolling with a fixed height
+        paging = FALSE       # Disable pagination so the scroll appears over the full dataset
+       )
+     )
+    })
 
-    
-    # Investment Summary and Recommendation Text
     output$investment_summary <- renderUI({
       calc <- calculate_investment()
+      cur  <- input$currency
+      symbol <- currencySymbol(cur)
+
+      # Begin the main container
       summary_html <- paste0(
-        "<div style='font-family: \"Nunito\", sans-serif; background-color: #f8f9fa; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;'>",
+        "<div style='font-family: \"Nunito\", sans-serif; 
+                    background-color: #f8f9fa; 
+                    padding: 20px; 
+                    border: 1px solid #ddd; 
+                    border-radius: 8px; 
+                    margin-bottom: 20px;'>",
           "<h3 style='margin-top: 0; color: #2c3e50;'>Investment Summary</h3>",
-          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Future Value of Initial Investment:</strong> ", 
-              scales::dollar(round(calc$fv_initial, 0)), "</p>",
-          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Future Value of Regular Contributions:</strong> ", 
-              scales::dollar(round(calc$fv_annuity, 0)), "</p>",
-          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Total Future Value (Nominal):</strong> ", 
-              scales::dollar(round(calc$total_nominal, 0)), "</p>",
-          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Total Future Value (Inflation-Adjusted):</strong> ", 
-              scales::dollar(round(calc$total_real, 0)), "</p>",
-          "<p style='font-size: 16px; margin-bottom: 10px;'><strong>Goal Amount:</strong> ", 
-              scales::dollar(calc$goal), "</p>"
+
+          # Start the custom-bullet UL
+          "<ul style='list-style: none; padding-left: 0; font-size: 16px; line-height: 1.6; margin-bottom: 20px;'>",
+
+            # 1) Future Value of Initial Investment
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Future Value of Initial Investment:</strong> ",
+              formatCurrency(round(calc$fv_initial, 0), cur),
+            "</li>",
+
+            # 2) Future Value of Regular Contributions
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Future Value of Regular Contributions:</strong> ",
+              formatCurrency(round(calc$fv_annuity, 0), cur),
+            "</li>",
+
+            # 3) Total Future Value (Nominal)
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Total Future Value (Nominal):</strong> ",
+              formatCurrency(round(calc$total_nominal, 0), cur),
+            "</li>",
+
+            # 4) Total Future Value (Inflation-Adjusted)
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Total Future Value (Inflation-Adjusted):</strong> ",
+              formatCurrency(round(calc$total_real, 0), cur),
+            "</li>",
+
+            # 5) Goal Amount
+            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+              "<strong>Goal Amount:</strong> ",
+              paste0(symbol, " ", formatC(calc$goal, format = "f", big.mark = ",", digits = 0)),
+            "</li>",
+
+          "</ul>"
       )
+
       # Recommendation message based on whether the goal is met
-      recommendation <- if(calc$total_nominal >= calc$goal) {
-        "<p style='font-size: 16px; margin-bottom: 0; color: green;'><strong>Result:</strong> Congratulations! You are on track to meet your investment goal.</p>"
+      recommendation <- if (calc$total_nominal >= calc$goal) {
+        paste0(
+          "<h4 style='margin-top: 0; color: #2c3e50; margin-bottom: 10px;'>Recommendation</h4>",
+          "<p style='font-size: 16px; margin-bottom: 0; color: green; font-weight: bold;'>",
+            "Congratulations! You are on track to meet your investment goal.",
+          "</p>"
+        )
       } else {
-        "<p style='font-size: 16px; margin-bottom: 0; color: red;'><strong>Result:</strong> Your projected future value is below your goal. Consider increasing your contributions or adjusting your strategy.</p>"
+        paste0(
+          "<h4 style='margin-top: 0; color: #2c3e50; margin-bottom: 10px;'>Recommendation</h4>",
+          "<p style='font-size: 16px; margin-bottom: 0; color: red; font-weight: bold;'>",
+            "<strong>Result:</strong> Your projected future value is below your goal. ",
+            "Consider increasing your contributions or adjusting your strategy.",
+          "</p>"
+        )
       }
+
+      # Close out the container
       summary_html <- paste0(summary_html, recommendation, "</div>")
+      
       HTML(summary_html)
     })
-    
-    # Final Nominal Balance Value Box
-    output$final_balance_box <- renderValueBox({
+
+
+    # --- In your server (or module server) ---
+    output$final_balance_box <- renderUI({
       calc <- calculate_investment()
-      box_color <- if(calc$total_nominal >= calc$goal) "success" else "warning"
-      valueBox(
-        scales::dollar(round(calc$total_nominal, 0)),
-        "Final Nominal Balance",
-        icon = icon("chart-line"),
-        color = box_color
-      )
+      cur  <- input$currency
+      
+      # Choose color (green if goal met, red if not)
+      box_color <- if (calc$total_nominal >= calc$goal) "#27ae60" else "#c0392b"
+      
+      # Create a custom card-like HTML block
+      HTML(paste0(
+        "<div style='padding: 20px; border: 2px solid ", box_color, 
+            "; border-radius: 5px; background-color: #f9f9f9;'>",
+          "<h4 style='margin-top: 0; margin-bottom: 10px; color: ", box_color, ";'>Final Nominal Balance</h4>",
+          "<p style='font-size: 24px; font-weight: bold; margin-bottom: 0; color: ", box_color, ";'>",
+            formatCurrency(round(calc$total_nominal, 0), cur),
+          "</p>",
+        "</div>"
+      ))
     })
+
     
     # Download Handler for Excel export of the schedule
     # Updated Download Handler for Formatted Excel Output
