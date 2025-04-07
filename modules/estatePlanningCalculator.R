@@ -34,6 +34,24 @@ estatePlanningCalcUI <- function(id) {
         )
       )
     ),
+     fluidRow(
+      hr(),
+      column(width = 4,
+        bs4Dash::tooltip(
+          shiny::tagAppendAttributes(
+            selectInput(
+              ns("currency"),
+              label = "Select Desired Currency:",
+              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"),
+              selected = "USD"
+            ),
+            `data-trigger` = "click"
+          ),
+          title = "Select the currency in which results should be displayed",
+          placement = "right"
+        )
+      )
+    ),   
    # Row 1: Assets & Liabilities
     fluidRow(
       bs4Card(
@@ -43,7 +61,7 @@ estatePlanningCalcUI <- function(id) {
         collapsible = TRUE,
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("real_estate"),  
-                          label = "Real Estate (KES):",  
+                          label = "",  
                           value = 10000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -52,7 +70,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("investments"),  
-                          label = "Investments (KES):",  
+                          label = "",  
                           value = 5000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -61,7 +79,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("bank_savings"),  
-                          label = "Bank Savings (KES):",  
+                          label = "",  
                           value = 3000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -70,7 +88,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("business"),  
-                          label = "Business Interests (KES):",  
+                          label = "",  
                           value = 8000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -79,7 +97,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("personal_property"),  
-                          label = "Personal Property (KES):",  
+                          label = "",  
                           value = 2000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -88,7 +106,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("other_assets"),  
-                          label = "Other Assets (KES):",  
+                          label = "",  
                           value = 1000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -104,7 +122,7 @@ estatePlanningCalcUI <- function(id) {
         collapsible = TRUE,
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("mortgages"),  
-                          label = "Mortgages (KES):",  
+                          label = "",  
                           value = 4000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -113,7 +131,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("loans"),  
-                          label = "Loans (KES):",  
+                          label = "",  
                           value = 2000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -122,7 +140,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("credit_cards"),  
-                          label = "Credit Card Debts (KES):",  
+                          label = "",  
                           value = 200000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -131,7 +149,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("other_liabilities"),  
-                          label = "Other Liabilities (KES):",  
+                          label = "",  
                           value = 500000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -149,7 +167,7 @@ estatePlanningCalcUI <- function(id) {
         collapsible = TRUE,
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("funeral_expenses"),  
-                          label = "Funeral Expenses (KES):",  
+                          label = "",  
                           value = 500000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -168,7 +186,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("estate_duty_exemption"),  
-                          label = "Estate Duty Exemption (KES):",  
+                          label = "",  
                           value = 5000000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -177,7 +195,7 @@ estatePlanningCalcUI <- function(id) {
         ),
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("other_deductions"),  
-                          label = "Other Deductions (KES):",  
+                          label = "",  
                           value = 300000, 
                           decimalPlaces = 0, 
                           digitGroupSeparator = ","),
@@ -224,8 +242,7 @@ estatePlanningCalcUI <- function(id) {
         width = 12,
         collapsible = TRUE,
         id = ns("EstateSummary"),
-        tableOutput(ns("summaryTable")),
-        uiOutput(ns("distributionWarning"))
+        uiOutput(ns("summaryUI"))
       )
     )
   )
@@ -237,6 +254,96 @@ estatePlanningCalcUI <- function(id) {
 estatePlanningCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    # -------------------------------------------------------------
+    # A) HELPER: Map currency code to symbol
+    # -------------------------------------------------------------
+    currencySymbol <- function(cur) {
+      switch(cur,
+        "USD" = "$",
+        "EUR" = "€",
+        "GBP" = "£",
+        "JPY" = "¥",
+        "CHF" = "Fr",
+        "CAD" = "C$",
+        "AUD" = "A$",
+        "KES" = "KSh.",
+        cur  # fallback
+      )
+    }
+    
+    # B) Format currency with the symbol
+    formatCurrency <- function(amount, cur) {
+      sym <- currencySymbol(cur)
+      paste0(sym, " ", format(round(amount, 0), big.mark = ",", scientific = FALSE))
+    }
+    
+    # -------------------------------------------------------------
+    # 1) Dynamically update input labels to reflect selected currency
+    # -------------------------------------------------------------
+    observe({
+      cur <- input$currency  # e.g. "USD", "EUR", etc.
+      sym <- currencySymbol(cur)
+      
+      # Assets
+      updateAutonumericInput(
+        session, "real_estate", 
+        label = paste("Real Estate (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "investments", 
+        label = paste("Investments (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "bank_savings",
+        label = paste("Bank Savings (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "business",
+        label = paste("Business Interests (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "personal_property",
+        label = paste("Personal Property (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "other_assets",
+        label = paste("Other Assets (", cur, "):", sep = "")
+      )
+      
+      # Liabilities
+      updateAutonumericInput(
+        session, "mortgages",
+        label = paste("Mortgages (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "loans",
+        label = paste("Loans (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "credit_cards",
+        label = paste("Credit Card Debts (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "other_liabilities",
+        label = paste("Other Liabilities (", cur, "):", sep = "")
+      )
+      
+      # Deductions
+      updateAutonumericInput(
+        session, "funeral_expenses",
+        label = paste("Funeral Expenses (", cur, "):", sep = "")
+      )
+      # estate_duty_rate label stays as % 
+      updateAutonumericInput(
+        session, "estate_duty_exemption",
+        label = paste("Estate Duty Exemption (", cur, "):", sep = "")
+      )
+      updateAutonumericInput(
+        session, "other_deductions",
+        label = paste("Other Deductions (", cur, "):", sep = "")
+      )
+    })
 
     # When Translate button is clicked, trigger translation using the dropdown
     observeEvent(input$translate, {
@@ -285,7 +392,8 @@ estatePlanningCalcServer <- function(id) {
          )
       )
     })
-      # EventReactive: calculations occur when the "Calculate Estate Plan" button is pressed.
+
+  # EventReactive: calculations occur when the "Calculate Estate Plan" button is pressed.
   estatePlan <- eventReactive(input$calculate, {
     # Total Assets
     total_assets <- input$real_estate + input$investments + input$bank_savings +
@@ -325,36 +433,85 @@ estatePlanningCalcServer <- function(id) {
     others_distribution <- final_estate * (others_adj / 100)
     
     # Build a summary data frame
-    summary_df <- data.frame(
-      Item = c("Total Assets", "Total Liabilities", "Preliminary Estate", 
-               "Estate Duty", "Additional Deductions", "Final Estate",
-               "Spouse Distribution", "Children Distribution", "Other Heirs Distribution"),
-      Amount_KES = c(total_assets, total_liabilities, preliminary_estate, 
-                     estate_duty, additional_deductions, final_estate,
-                     spouse_distribution, children_distribution, others_distribution)
-    )
-    
-    # Format amounts with commas and no decimals
-    summary_df$Amount_KES <- format(round(summary_df$Amount_KES, 0), big.mark = ",", scientific = FALSE)
-    
-    list(summary = summary_df, total_pct = total_pct)
-  }, ignoreInit = FALSE, ignoreNULL = FALSE)
+      summary_items <- list(
+        "Total Assets"             = total_assets,
+        "Total Liabilities"        = total_liabilities,
+        "Preliminary Estate"       = preliminary_estate,
+        "Estate Duty"              = estate_duty,
+        "Additional Deductions"    = additional_deductions,
+        "Final Estate"             = final_estate,
+        "Spouse Distribution"      = spouse_distribution,
+        "Children Distribution"    = children_distribution,
+        "Other Heirs Distribution" = others_distribution
+      )
+
+      list(
+        summary_items = summary_items,
+        total_pct     = total_pct
+      )
+    }, ignoreInit = FALSE, ignoreNULL = FALSE)
   
-  # Render the summary table
-  output$summaryTable <- renderTable({
-    estatePlan()$summary
-  }, striped = TRUE, bordered = TRUE, hover = TRUE)
-  
-  # Display a warning if beneficiary percentages don't sum to 100
-  output$distributionWarning <- renderUI({
-    total_pct <- estatePlan()$total_pct
-    if(total_pct != 100){
-      warning_text <- paste0("Warning: The beneficiary distribution percentages sum to ", total_pct, 
-                             "%. They have been scaled proportionally to total 100%.")
-      div(style = "color: red; font-weight: bold;", warning_text)
-    } else {
-      NULL
-     }
-   })
+    # [2] Smooth scroll on Calculate
+    observeEvent(input$calculate, {
+      shinyjs::runjs(
+        sprintf(
+          "document.getElementById('%s').scrollIntoView({behavior: 'smooth'});",
+          ns("EstateSummary")
+        )
+      )
+    })
+
+    # [4] A single UI output that styles the summary data & warning
+    output$summaryUI <- renderUI({
+      plan <- estatePlan()
+      sitems <- plan$summary_items
+      total_pct <- plan$total_pct
+      cur <- input$currency 
+
+      # Build HTML list items
+      # E.g. "Total Assets: 25,000,000"
+      list_html <- ""
+      for (nm in names(sitems)) {
+        amt  <- formatCurrency(sitems[[nm]], cur)
+        list_html <- paste0(list_html,
+          "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
+            "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
+            "<strong>", nm, ":</strong> ", amt,
+          "</li>"
+        )
+      }
+
+      # Check if we need to display a warning
+      warning_html <- ""
+      if (total_pct != 100) {
+        warning_text <- paste0(
+          "Warning: The beneficiary distribution percentages sum to ", total_pct,
+          "%. They have been scaled proportionally to total 100%."
+        )
+        warning_html <- paste0(
+          "<div style='color: #d9534f; font-weight: bold; margin-top: 10px;'>",
+            "<i class='fa fa-exclamation-triangle' style='margin-right: 5px;'></i>",
+            warning_text,
+          "</div>"
+        )
+      }
+
+      # Construct final HTML
+      HTML(paste0(
+        "<div style='font-family: \"Nunito\", sans-serif; font-size: 16px; color: #333; ",
+        "background-color: #f8f9fa; padding: 20px; border-radius: 8px; ",
+        "border: 1px solid #ddd; box-shadow: 0 2px 6px rgba(0,0,0,0.1);'>",
+
+          "<h3 style='margin-top: 0; margin-bottom: 20px; color: #2c3e50;'>Estate Summary</h3>",
+
+          "<ul style='list-style-type: none; padding-left: 0; margin-bottom: 0;'>",
+            list_html,
+          "</ul>",
+
+          warning_html,  # place the warning below the list if needed
+
+        "</div>"
+      ))
+    })
  })
 }
