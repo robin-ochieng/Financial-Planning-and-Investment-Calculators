@@ -65,7 +65,7 @@ ui <- dashboardPage(
     tags$div(
       class = "menu-container",
     sidebarMenu(
-      menuItem("Retirement Calculator", tabName = "retirementCalculator", icon = icon("piggy-bank")),
+      menuItem("Retirement Calculator", tabName = "retirementCalculator", icon = icon("piggy-bank")), 
       menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("chart-line")),
       menuItem("Personal Investment Calculator", tabName = "personalCalculator", icon = icon("wallet")),
       menuItem("Financial Planning Calculator", tabName = "financialCalculator", icon = icon("calculator")),
