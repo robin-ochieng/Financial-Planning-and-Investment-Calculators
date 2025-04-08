@@ -554,13 +554,9 @@ estatePlanningCalcServer <- function(id) {
           "<ul style='list-style-type: none; padding-left: 0; margin-bottom: 0;'>",
             list_html,
           "</ul>",
-
           warning_html,  # place the warning below the list if needed
-
           action_items,  # Add the new Key Action Items block
-
           disclaimer_html,  # Add the disclaimer at the end
-          
         "</div>"
       ))
     })
