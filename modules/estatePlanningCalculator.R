@@ -400,7 +400,7 @@ estatePlanningCalcServer <- function(id) {
          )
       )
     })
-    
+
   # -------------------------------------------------------------
   # EventReactive: calculations occur when the "Calculate Estate Plan" button is pressed.
   estatePlan <- eventReactive(input$calculate, {
@@ -532,6 +532,17 @@ estatePlanningCalcServer <- function(id) {
         )
       }
 
+      # -----------------------------
+      # Disclaimer Section (NEW)
+      # -----------------------------
+      disclaimer_html <- paste0(
+        "<div style='font-size:14px; margin-top:20px; color:#555; font-style:italic;'>",
+          "<strong>Disclaimer:</strong> This calculator is provided for educational and illustrative purposes only. ",
+          "It does not constitute legal or financial advice. Please consult a qualified legal or financial professional ",
+          "for personalized guidance regarding your estate planning needs.",
+        "</div>"
+      )
+
       # Construct final HTML
       HTML(paste0(
         "<div style='font-family: \"Nunito\", sans-serif; font-size: 16px; color: #333; ",
@@ -548,6 +559,8 @@ estatePlanningCalcServer <- function(id) {
 
           action_items,  # Add the new Key Action Items block
 
+          disclaimer_html,  # Add the disclaimer at the end
+          
         "</div>"
       ))
     })
