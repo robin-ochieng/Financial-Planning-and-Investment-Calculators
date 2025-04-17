@@ -17,6 +17,7 @@ source("modules/irrCalculator.R")
 source("modules/personalInvestmentCalculator.R")
 source("modules/financialPlanningCalculator.R")
 source("modules/estatePlanningCalculator.R")
+source("modules/helper_functions.R")
 
 # Define a custom theme using bslib
 my_theme <- bs_theme(
