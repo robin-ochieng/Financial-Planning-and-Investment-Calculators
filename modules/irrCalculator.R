@@ -50,7 +50,19 @@ irrCalcUI <- function(id) {
             selectInput(
               ns("currency"), 
               label = "Select Preferred Currency", 
-              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"), 
+              choices = list(
+                "US Dollar (USD)" = "USD",
+                "Euro (EUR)" = "EUR",
+                "British Pound (GBP)" = "GBP",
+                "Japanese Yen (JPY)" = "JPY",
+                "Swiss Franc (CHF)" = "CHF",
+                "Canadian Dollar (CAD)" = "CAD",
+                "Australian Dollar (AUD)" = "AUD",
+                "Kenyan Shilling (KES)" = "KES",
+                "West African CFA franc (XOF)" = "XOF",
+                "Central African CFA franc (XAF)" = "XAF",
+                "Nigerian Naira (NGN)" = "NGN"       
+                ), 
               selected = "USD"
             ),
             `data-trigger` = "click"
@@ -63,7 +75,7 @@ irrCalcUI <- function(id) {
     fluidRow(
       box(
         status = "success",
-        title = "Personal & Retirement Profile", width = 6, height = "700px",
+        title = "Personal & Retirement Profile", width = 6, height = "715px",
         bs4Dash::tooltip(
           textInput(inputId = ns("name"), label = "Full Name", value = "John Bosco"),
           title = "Enter your full name.",
@@ -107,7 +119,7 @@ irrCalcUI <- function(id) {
       ),
       box(
         status = "success",
-        title = "Retirement Income & Assumptions", width = 6, height = "700px",
+        title = "Retirement Income & Assumptions", width = 6, height = "715px",
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("social_security"), label = "", value = 80000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "Enter your expected annual Social Security benefit.",
@@ -127,21 +139,6 @@ irrCalcUI <- function(id) {
           numericInput(ns("desired_IRR"), "Desired Income Replacement Ratio (%)", value = 55, min = 0, max = 100),
           title = "Enter the desired percentage of your pre-retirement income you wish to replace during retirement.",
           placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("tax_rate"), "Tax Rate (%)", value = 15, min = 0, max = 100),
-          title = "Enter the tax rate applicable to your pension and savings withdrawals.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("inflation_rate"), "Inflation Rate (%)", value = 2, min = 0, max = 100),
-          title = "Enter the expected annual inflation rate.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("life_expectancy"), "Life Expectancy (years)", value = 85, min = 0),
-          title = "Enter your expected life expectancy.",
-          placement = "right"
         )
       )
     ),
@@ -156,7 +153,7 @@ irrCalcUI <- function(id) {
         status = "success",
         width = 12, 
         id = ns("Results"),
-        height = "900px",
+        height = "820px",
         fluidRow(
           style = "margin-bottom: 10px;", 
           # 1) Title text output
@@ -213,10 +210,12 @@ irrCalcServer <- function(id) {
         "CAD" = "C$",
         "AUD" = "A$",
         "KES" = "KSh.",
-        cur  # fallback: just show the code
+        "XOF" = "F CFA",
+        "XAF" = "FCFA",
+        "NGN" = "₦",
+        cur  # fallback: just use the code if unrecognized
       )
     }
-
     # (B) HELPER: Format numeric values with the appropriate currency symbol
     #    For example, formatCurrency(12345.67, "USD") => "$ 12,346"
     formatCurrency <- function(amount, cur) {
@@ -272,22 +271,6 @@ irrCalcServer <- function(id) {
         setTimeout(triggerTranslation, 1500);
       ")
     })
-
-    # Button to toggle visibility of the language options (with scrolling).
-    observeEvent(input$toggleLanguages, {
-      shinyjs::runjs("
-        var el = document.getElementById('google_translate_element');
-        // If currently hidden off-screen, make it visible and scrollable.
-        if (el.style.left === '-9999px') {
-          el.style.left = '0';
-          el.style.position = 'relative';
-          el.style.maxHeight = '300px';
-          el.style.overflowY = 'auto';
-        } else {
-          el.style.left = '-9999px';
-        }
-      ")
-    })
     
     # Scroll to results box when compute is pressed
     observeEvent(input$compute, {
@@ -318,20 +301,13 @@ irrCalcServer <- function(id) {
       total_ret_income <- input$social_security + input$pension_income + input$savings_withdrawal
       
       # Step 3: Tax Adjustments
-      incProgress(0.1, detail = "Calculating taxes...")
-      # Calculate taxes on the taxable portion (pension and savings withdrawal)
-      taxable_income <- input$pension_income + input$savings_withdrawal
-      taxes <- taxable_income * (input$tax_rate / 100)
-      after_tax_income <- total_ret_income - taxes
+      incProgress(0.25, detail = "Calculating net income...")
+      # Assuming a flat tax rate of 30% for simplicity
+      after_tax_income_adj <- total_ret_income 
 
-      # Step 4: Inflation Adjustment
-      incProgress(0.2, detail = "Adjusting for inflation...")      
-      # Adjust for inflation over the years until retirement
-      inflation_factor <- (1 + input$inflation_rate / 100)^years_to_retirement
-      desired_IRR_value_adj <- desired_IRR_value * inflation_factor
-      after_tax_income_adj <- after_tax_income * inflation_factor
-      
-      # Step 5: Determine Shortfall
+      # No inflation adjustment is applied:
+      desired_IRR_value_adj <- desired_IRR_value 
+
       incProgress(0.15, detail = "Computing shortfall...")
       shortfall <- desired_IRR_value_adj - after_tax_income_adj
 
@@ -412,7 +388,7 @@ irrCalcServer <- function(id) {
                 "padding: 12px; border-left: 4px solid #007bff; border-radius: 4px;'>",
                   "<i class='fa fa-money-bill-wave' style='margin-right: 5px; color: #007bff;'></i>",
                   "<strong>After-Tax Income:</strong> ",
-                  formatCurrency(after_tax_income, input$currency), 
+                  formatCurrency(after_tax_income_adj, input$currency), 
                   " per year",
                 "</li>",
                 
@@ -421,16 +397,8 @@ irrCalcServer <- function(id) {
                 "padding: 12px; border-left: 4px solid #f0ad4e; border-radius: 4px;'>",
                   "<i class='fa fa-percentage' style='margin-right: 5px; color: #f0ad4e;'></i>",
                   "<strong>Desired IRR (Annual Replacement):</strong> ",
-                  formatCurrency(desired_IRR_value, input$currency),
+                  formatCurrency(desired_IRR_value_adj, input$currency),
                   " per year",
-                "</li>",
-                
-                # Inflation Factor
-                "<li style='margin-bottom: 10px; background-color: #f8f9fa; ",
-                "padding: 12px; border-left: 4px solid #6f42c1; border-radius: 4px;'>",
-                  "<i class='fa fa-chart-line' style='margin-right: 5px; color: #6f42c1;'></i>",
-                  "<strong>Inflation Factor (over ", years_to_retirement, " years):</strong> ",
-                  round(inflation_factor, 2),
                 "</li>",
                 
                 # Shortfall
