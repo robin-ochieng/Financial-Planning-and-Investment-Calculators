@@ -45,7 +45,19 @@ retirementCalcUI <- function(id) {
             selectInput(
               ns("currency"), 
               label = "Select Preferred Currency", 
-              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"), 
+              choices = list(
+                "US Dollar (USD)" = "USD",
+                "Euro (EUR)" = "EUR",
+                "British Pound (GBP)" = "GBP",
+                "Japanese Yen (JPY)" = "JPY",
+                "Swiss Franc (CHF)" = "CHF",
+                "Canadian Dollar (CAD)" = "CAD",
+                "Australian Dollar (AUD)" = "AUD",
+                "Kenyan Shilling (KES)" = "KES",
+                "West African CFA franc (XOF)" = "XOF",
+                "Central African CFA franc (XAF)" = "XAF",
+                "Nigerian Naira (NGN)" = "NGN"
+              ), 
               selected = "USD"
             ),
             `data-trigger` = "click"
@@ -57,15 +69,18 @@ retirementCalcUI <- function(id) {
     ),
 
     fluidRow(
-      box(
+      box( 
         title = "Personal Details",
         status = "secondary",
-        bs4Dash::tooltip(
-          shiny::tagAppendAttributes(
-            textInput(ns("current_age"), label = "Your current age", value = "35"),
-            `data-trigger` = "click"),
-          title = "Enter your current age in years",
-          placement = "right"
+        textInput(
+          inputId = ns("current_age"),
+          label = label_with_info(
+            label_text = "Your current age",
+            info_id = ns("current_age_info"),
+            popover_title = "Current Age",
+            popover_content = "Enter your current age in years. This helps in calculating the time until retirement."
+          ),
+          value = "35"
         ),
         bs4Dash::tooltip(
           textInput(ns("retirement_age"), label = "Planned retirement age", value = "65"),
@@ -81,11 +96,11 @@ retirementCalcUI <- function(id) {
           autonumericInput(
             inputId = ns("pre_tax_income"), 
             label = "", 
-            value = 80000, 
+            value = 9000, 
             decimalPlaces = 0, 
             digitGroupSeparator = ","
             ),
-          title = "Enter your annual pre-tax income in USD",
+          title = "Enter your annual income",
           placement = "right"
         ),
         width = 4, height = "400px"
@@ -104,13 +119,8 @@ retirementCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          textInput(ns("investment_return"), label = "Average investment return (%)", value = "6"),
+          textInput(ns("investment_return"), label = "Average investment return (%) per year", value = "6"),
           title = "Expected annual return rate on your investments",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          textInput(ns("inflation_rate"), label = "Inflation rate (%)", value = "2"),
-          title = "Expected annual inflation rate",
           placement = "right"
         ),
         width = 4, height = "400px"
@@ -127,22 +137,11 @@ retirementCalcUI <- function(id) {
           autonumericInput(
             inputId = ns("current_savings"), 
             label = "", 
-            value = 100000, 
+            value = 10000, 
             decimalPlaces = 0, 
             digitGroupSeparator = ","
             ),
           title = "Amount you have saved for retirement so far in USD",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(
-            inputId = ns("other_income"), 
-            label = "", 
-            value = 0, 
-            decimalPlaces = 0, 
-            digitGroupSeparator = ","
-            ),
-          title = "Any additional income you expect to receive monthly during retirement",
           placement = "right"
         ),
         width = 4, height = "400px"
@@ -156,7 +155,7 @@ retirementCalcUI <- function(id) {
           autonumericInput(
             inputId = ns("monthly_expense"), 
             label = "", 
-            value = 3000, 
+            value = 500, 
             decimalPlaces = 0, 
             digitGroupSeparator = ","
             ),
@@ -167,38 +166,27 @@ retirementCalcUI <- function(id) {
           autonumericInput(
             inputId = ns("healthcare_cost"), 
             label = "", 
-            value = 5000, 
+            value = 800, 
             decimalPlaces = 0, 
             digitGroupSeparator = ","
           ),
           title = "Estimated annual healthcare costs during retirement",
           placement = "right"
         ),
-        width = 6, height = "300px"
+        width = 6, height = "220px"
       ),
       box(
         title = "Income & Withdrawal Strategy",
         status = "secondary",
         bs4Dash::tooltip(
           autonumericInput(
-            inputId = ns("social_security"), 
+            inputId = ns("other_retirement_income"),
             label = "", 
-            value = 1500, 
-            decimalPlaces = 0, 
-            digitGroupSeparator = ","    
-            ),
-          title = "Monthly Social Security benefit expected starting at retirement",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(
-            inputId = ns("rental_income"), 
-            label = "", 
-            value = 500, 
-            decimalPlaces = 0, 
-            digitGroupSeparator = ","      
-            ),
-          title = "Monthly rental income expected during retirement",
+            value = 300,
+            decimalPlaces = 0,
+            digitGroupSeparator = ","
+          ),
+          title = "Other retirement income expected per month",
           placement = "right"
         ),
         bs4Dash::tooltip(
@@ -206,7 +194,7 @@ retirementCalcUI <- function(id) {
           title = "Planned annual withdrawal rate from your retirement savings",
           placement = "right"
         ),
-        width = 6, height = "300px"
+        width = 6, height = "220px"
       )
     ),      
       fluidRow(
@@ -253,19 +241,13 @@ retirementCalcServer <- function(id) {
       updateAutonumericInput(
         session, 
         "pre_tax_income",
-        label = paste("Current pre-tax income (", cur, "):", sep = "")
+        label = paste("Current Annual Income (", cur, "):", sep = "")
       )
       
       updateAutonumericInput(
         session, 
         "current_savings",
-        label = paste("Current retirement savings (", cur, "):", sep = "")
-      )
-      
-      updateAutonumericInput(
-        session, 
-        "other_income",
-        label = paste("Other income after retirement (", cur, "/month):", sep = "")
+        label = paste("Current retirement savings (including DB/DC) (", cur, "):", sep = "")
       )
       
       updateAutonumericInput(
@@ -279,19 +261,12 @@ retirementCalcServer <- function(id) {
         "healthcare_cost",
         label = paste("Healthcare costs (", cur, "/year):", sep = "")
       )
-      
-      updateAutonumericInput(
+
+       updateAutonumericInput(
         session, 
-        "social_security",
-        label = paste("Social Security Benefit (", cur, "/month):", sep = "")
-      )
-      
-      updateAutonumericInput(
-        session, 
-        "rental_income",
-        label = paste("Rental Income (", cur, "/month):", sep = "")
-      )
-      
+        "other_retirement_income",
+        label = paste("Other retirement income (", cur, "/month):", sep = "")
+      )     
     })
     
     # 2) Translate button
@@ -346,16 +321,14 @@ retirementCalcServer <- function(id) {
       income <- as.numeric(input$pre_tax_income)
       income_growth <- as.numeric(input$income_growth) / 100
       investment_return <- as.numeric(input$investment_return) / 100
-      inflation_rate <- as.numeric(input$inflation_rate) / 100
-      
+  
       # Additional retirement details
       incProgress(0.1, detail = "Gathering retirement details...")
       monthly_expense <- as.numeric(input$monthly_expense)
       healthcare_cost <- as.numeric(input$healthcare_cost)
-      social_security <- as.numeric(input$social_security)
-      rental_income <- as.numeric(input$rental_income)
       withdrawal_rate <- as.numeric(input$withdrawal_rate) / 100
-      
+      other_retirement_income <- as.numeric(input$other_retirement_income)
+
       # Calculate years until retirement
       # Step 3: Calculate years until retirement and savings accumulation
       incProgress(0.2, detail = "Calculating savings accumulation...")      
@@ -371,17 +344,16 @@ retirementCalcServer <- function(id) {
       }
       total_savings <- tail(savings, 1)
       
-      # Adjust retirement expenses for inflation until retirement
-      # Step 4: Adjust expenses for inflation and calculate required annual withdrawal
-      incProgress(0.3, detail = "Adjusting expenses for inflation...")
-      adjusted_monthly_expense <- monthly_expense * ((1 + inflation_rate) ^ years_to_retirement)
-      adjusted_healthcare_cost <- healthcare_cost * ((1 + inflation_rate) ^ years_to_retirement)
+      # Step 4: Calculate retirement expenses and income needs
+      incProgress(0.3, detail = "Finalizing projections...")
+      adjusted_monthly_expense <- monthly_expense 
+      adjusted_healthcare_cost <- healthcare_cost 
       
       # Total annual retirement expenses (combining monthly expenses and healthcare)
       total_annual_expense <- (adjusted_monthly_expense * 12) + adjusted_healthcare_cost
       
       # Annual income from Social Security and rental income
-      annual_non_savings_income <- (social_security + rental_income) * 12
+      annual_non_savings_income <- other_retirement_income  * 12
       
       # Net annual amount needed from savings
       required_annual_withdrawal <- max(total_annual_expense - annual_non_savings_income, 0)
@@ -460,6 +432,9 @@ retirementCalcServer <- function(id) {
         "CAD" = "C$",
         "AUD" = "A$",
         "KES" = "KSh.",
+        "XOF" = "F CFA",
+        "XAF" = "FCFA",
+        "NGN" = "₦",
         cur  # fallback: just use the code if unrecognized
       )
     }
@@ -480,17 +455,17 @@ retirementCalcServer <- function(id) {
             "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
               "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
               "<strong>Total Savings at Retirement:</strong> ", 
-              symbol, " ", format(round(res$total_savings, 2), big.mark = ","), 
+              symbol, " ", format(round(res$total_savings, 0), big.mark = ","), 
             "</li>",
             "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
               "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
               "<strong>Annual Withdrawal Needed from Savings:</strong> ", 
-              symbol, " ", format(round(res$required_annual_withdrawal, 2), big.mark = ","), 
+              symbol, " ", format(round(res$required_annual_withdrawal, 0), big.mark = ","), 
             "</li>",
             "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
               "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
               "<strong>Sustainable Annual Withdrawal (", input$withdrawal_rate, "% of savings):</strong> ", 
-              symbol, " ", format(round(res$sustainable_withdrawal, 2), big.mark = ","), 
+              symbol, " ", format(round(res$sustainable_withdrawal, 0), big.mark = ","), 
             "</li>",
             "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
               "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
