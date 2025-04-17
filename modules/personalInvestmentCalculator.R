@@ -46,7 +46,19 @@ personalInvestmentCalcUI <- function(id) {
             selectInput(
               ns("currency"), 
               label = "Select Preferred Currency", 
-              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"), 
+              choices = list(
+                "US Dollar (USD)" = "USD",
+                "Euro (EUR)" = "EUR",
+                "British Pound (GBP)" = "GBP",
+                "Japanese Yen (JPY)" = "JPY",
+                "Swiss Franc (CHF)" = "CHF",
+                "Canadian Dollar (CAD)" = "CAD",
+                "Australian Dollar (AUD)" = "AUD",
+                "Kenyan Shilling (KES)" = "KES",
+                "West African CFA franc (XOF)" = "XOF",
+                "Central African CFA franc (XAF)" = "XAF",
+                "Nigerian Naira (NGN)" = "NGN"                    
+                ), 
               selected = "USD"
             ),
             `data-trigger` = "click"
@@ -60,7 +72,7 @@ personalInvestmentCalcUI <- function(id) {
       # Inputs box on the left
       box(
         status = "secondary",
-        title = "Investment Inputs", width = 5, height = "580px", 
+        title = "Investment Inputs", width = 5, height = "535px", 
         # Tooltips for each field
         bs4Dash::tooltip(
           autonumericInput(inputId = ns("initial"), label = "", value = 100000, decimalPlaces = 0, digitGroupSeparator = ","),
@@ -83,11 +95,6 @@ personalInvestmentCalcUI <- function(id) {
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("inflation"), "Inflation Rate (%):", value = 2, min = 0, step = 0.1),
-          title = "The expected annual inflation rate (optional).",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
           autonumericInput(inputId = ns("goal"), label = "", value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
           title = "A target amount you want to achieve, which can help determine how much you need to save or invest.",
           placement = "right"
@@ -98,7 +105,7 @@ personalInvestmentCalcUI <- function(id) {
         title = "Results Summary",
         status = "secondary",
         width = 7,
-        height = "580px",
+        height = "535px",
         id = ns("ResultsSummary"),
         fluidRow(
           div(style = "margin-bottom: 10px;", uiOutput(ns("investment_summary")))
@@ -122,14 +129,8 @@ personalInvestmentCalcUI <- function(id) {
     # Graphs on the bottom: Two sets of graphs (Nominal and Inflation-Adjusted)
     fluidRow(
       box(
-        title = "Investment Growth - Nominal", status = "secondary", width = 12,
+        title = "Investment Growth", status = "secondary", width = 12,
         plotlyOutput(ns("growthPlot_nominal"))
-      )
-    ),
-    fluidRow(
-      box(
-        title = "Investment Growth - Inflation Adjusted", status = "secondary", width = 12,
-        plotlyOutput(ns("growthPlot_real"))
       )
     ),
     fluidRow(
@@ -158,6 +159,9 @@ personalInvestmentCalcServer <- function(id) {
         "CAD" = "C$",
         "AUD" = "A$",
         "KES" = "KSh.",
+        "XOF" = "F CFA",
+        "XAF" = "FCFA",
+        "NGN" = "₦",
         cur  # fallback if no match
       )
     }
@@ -238,7 +242,6 @@ personalInvestmentCalcServer <- function(id) {
       monthly_rate <- rate_annual / 12
       years        <- as.numeric(input$years)
       months       <- years * 12
-      inflation_rate <- as.numeric(input$inflation) / 100
       goal         <- as.numeric(input$goal)
       incProgress(1/n, detail = 'Processing inputs...')
       
@@ -255,16 +258,12 @@ personalInvestmentCalcServer <- function(id) {
       
       # Total Nominal Future Value:
       total_nominal <- fv_initial + fv_annuity
-      
-      # Inflation-Adjusted (Real) Future Value:
-      total_real <- total_nominal / ((1 + inflation_rate)^(years))
       incProgress(1/n, detail = 'Performing calculations...')
 
       # --- Monthly Schedule (for plots and table) ---
       schedule <- data.frame(
         Month = 1:months, 
-        Nominal = numeric(months), 
-        Real = numeric(months)
+        Nominal = numeric(months)
       )
 
       # Use an iterative approach to simulate month-by-month growth
@@ -275,8 +274,7 @@ personalInvestmentCalcServer <- function(id) {
           incProgress(1/(n * months), detail = paste('Calculating month', i, 'of', months))
         }
       }
-      # Adjust each month’s nominal value for inflation (using monthly approximation)
-      schedule$Real <- schedule$Nominal / ((1 + inflation_rate)^((schedule$Month)/12))
+
       incProgress(1/n, detail = 'Finalizing results...')
 
       list(
@@ -284,7 +282,6 @@ personalInvestmentCalcServer <- function(id) {
         fv_initial = fv_initial,
         fv_annuity = fv_annuity,
         total_nominal = total_nominal,
-        total_real = total_real,
         goal = goal
       )
       })
@@ -313,19 +310,6 @@ personalInvestmentCalcServer <- function(id) {
                margin = list(l = 50, r = 50, b = 50, t = 50))
     })
     
-    # Inflation-Adjusted Growth Plot
-    output$growthPlot_real <- renderPlotly({
-      req(calculate_investment())  # Ensure the calculation is done before plotting
-      df <- calculate_investment()$schedule
-      cur <- selectedCurrency()
-      plot_ly(df, x = ~Month, y = ~Real, type = 'scatter', mode = 'lines',
-              line = list(color = 'green', width = 2)) %>%
-        layout(title = list(text = "Inflation-Adjusted Investment Growth Over Time"),
-               xaxis = list(title = "Months"),
-               yaxis = list(title = paste0("Balance (", cur, ")")),
-               margin = list(l = 50, r = 50, b = 50, t = 50))
-    })
-    
     # Summary Table of monthly values with additional columns
     output$summaryTable <- renderDataTable({
       req(calculate_investment())  # Ensure the calculation is done before rendering the table
@@ -340,7 +324,6 @@ personalInvestmentCalcServer <- function(id) {
       
       # Format columns with our custom currency function
       df$Nominal <- formatCurrency(df$Nominal, input$currency)
-      df$Real <- formatCurrency(df$Real, input$currency)
       df$Cumulative_Contributions <- formatCurrency(df$Cumulative_Contributions, input$currency)
       df$Total_Contributions <- formatCurrency(df$Total_Contributions, input$currency)
       df$Total_Interest_Earned <- formatCurrency(df$Total_Interest_Earned, input$currency)
@@ -394,20 +377,12 @@ personalInvestmentCalcServer <- function(id) {
               formatCurrency(round(calc$total_nominal, 0), cur),
             "</li>",
 
-            # 4) Total Future Value (Inflation-Adjusted)
-            "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
-              "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
-              "<strong>Total Future Value (Inflation-Adjusted):</strong> ",
-              formatCurrency(round(calc$total_real, 0), cur),
-            "</li>",
-
             # 5) Goal Amount
             "<li style='margin-bottom: 10px; position: relative; padding-left: 24px;'>",
               "<span style='position: absolute; left: 0; color: #2c3e50;'>&#8226;</span>",
               "<strong>Goal Amount:</strong> ",
               paste0(symbol, " ", formatC(calc$goal, format = "f", big.mark = ",", digits = 0)),
             "</li>",
-
           "</ul>"
       )
 
