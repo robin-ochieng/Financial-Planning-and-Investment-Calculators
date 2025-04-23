@@ -61,10 +61,10 @@ ui <- dashboardPage(
   dashboardSidebar(
     div(class = "logos",
         img(src = "images/kenbright.png"),
-        img(src = "images/afdb logo.png", class = "afdb-logo")
+        img(src = "images/afdb logo.png", class = "afdb-logo") 
     ),
     tags$div(
-      class = "menu-container",
+      class = "menu-container", 
     sidebarMenu(
       menuItem("Retirement Calculator", tabName = "retirementCalculator", icon = icon("piggy-bank")),
       menuItem("IRR Calculator", tabName = "irrCalculator", icon = icon("chart-line")),
