@@ -133,13 +133,17 @@
   height: 100px;
 }
 
-
 .logos img {
   height: 50px;
 }
 
-
-
+.info-icon {
+  color: rgb(68, 66, 66);
+  margin-left: 3px;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
 
 /* Hide the .menu-container on smaller screens */
 @media (max-width: 768px) {
