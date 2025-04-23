@@ -1,5 +1,4 @@
 # modules/retirementCalculatorModule.R
-
 retirementCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
@@ -78,121 +77,106 @@ retirementCalcUI <- function(id) {
             label_text = "Your current age",
             info_id = ns("current_age_info"),
             popover_title = "Current Age",
-            popover_content = "Enter your current age in years. This helps in calculating the time until retirement."
+            popover_content = "Enter your current age in years. This helps in determining the years left to contribute, compounding periods, and the length of retirement payouts."
           ),
           value = "35"
         ),
-        bs4Dash::tooltip(
-          textInput(ns("retirement_age"), label = "Planned retirement age", value = "65"),
-          title = "Enter the age at which you plan to retire",
-          placement = "right"
+        textInput(
+          inputId = ns("retirement_age"),
+          label = label_with_info(
+            label_text = "Planned retirement age",
+            info_id = ns("retirement_age_info"),
+            popover_title = "Retirement Age",
+            popover_content = "Enter the age at which you want to stop full‑time work. This is used to determine the number of saving years that remain and the first year withdrawals start."
+          ),
+          value = "65"
         ),
-        bs4Dash::tooltip(
-          textInput(ns("life_expectancy"), label = "Life expectancy", value = "85"),
-          title = "Enter your expected age at the end of life",
-          placement = "right"
+        textInput(
+          inputId = ns("life_expectancy"),
+          label = label_with_info(
+            label_text = "Life expectancy",
+            info_id = ns("life_expectancy_info"),
+            popover_title = "Life expectancy",
+            popover_content = "How long you expect (or plan) to live—i.e., the last age the calculator should fund. It sets the retirement horizon so the tool can test whether your savings last the entire period."
+          ),
+          value = "85"
         ),
-        bs4Dash::tooltip(
-          autonumericInput(
-            inputId = ns("pre_tax_income"), 
-            label = "", 
-            value = 9000, 
-            decimalPlaces = 0, 
-            digitGroupSeparator = ","
-            ),
-          title = "Enter your annual income",
-          placement = "right"
-        ),
-        width = 4, height = "400px"
+        uiOutput(ns("pre_tax_income_ui")),
+        width = 4, height = "415px"
       ),
       box(
         title = "Financial Details",
         status = "secondary",
-        bs4Dash::tooltip(
-          textInput(ns("income_growth"), label = "Annual income increase (%)", value = "3"),
-          title = "Enter the expected annual percentage increase in your income",
-          placement = "right"
+        textInput(
+          inputId = ns("income_growth"),
+          label = label_with_info(
+            label_text = "Annual income increase (%)",
+            info_id = ns("income_growth_info"),
+            popover_title = "Annual income increase (%)",
+            popover_content = "The average percentage raise you expect each year until retirement (before inflation). It lets the calculator grow future contributions realistically."
+          ),
+          value = "3"
         ),
-        bs4Dash::tooltip(
-          textInput(ns("income_needed"), label = "Income needed after retirement (%)", value = "75"),
-          title = "Percentage of your pre-retirement income needed during retirement",
-          placement = "right"
+        textInput(
+          inputId = ns("income_needed"),
+          label = label_with_info(
+            label_text = "Income needed after retirement (%)",
+            info_id = ns("income_needed_info"),
+            popover_title = "Income needed after retirement (%)",
+            popover_content = "The replacement‑rate target—what fraction of your final pre‑retirement income you’ll actually spend each year in retirement. Typical guidance is 60‑80 %."
+          ),
+          value = "75"
         ),
-        bs4Dash::tooltip(
-          textInput(ns("investment_return"), label = "Average investment return (%) per year", value = "6"),
-          title = "Expected annual return rate on your investments",
-          placement = "right"
+        textInput(
+          inputId = ns("investment_return"),
+          label = label_with_info(
+            label_text = "Average investment return (%) per year",
+            info_id = ns("investment_return_info"),
+            popover_title = "Average investment return (%) per year",
+            popover_content = "The long‑run annual return you expect on your retirement portfolio (after fees, before inflation). It powers the growth of both existing savings and future contributions."
+          ),
+          value = "6"
         ),
-        width = 4, height = "400px"
+        width = 4, height = "415px"
       ),
       box(
         title = "Savings Details",
         status = "secondary",
-        bs4Dash::tooltip(
-          textInput(ns("future_savings"), label = "Future savings (% of income)", value = "10"),
-          title = "Percentage of your income that you plan to save each year",
-          placement = "right"
+        textInput(
+          inputId = ns("future_savings"),
+          label = label_with_info(
+            label_text = "Future savings (% of income)",
+            info_id = ns("future_savings_info"),
+            popover_title = "Future savings (% of income)",
+            popover_content = "The portion of your gross income you intend to set aside every year until retirement (e.g., contributions to pension, 401(k), IRA, etc.). It’s the main driver of your retirement savings growth."
+          ),
+          value = "10"
         ),
-        bs4Dash::tooltip(
-          autonumericInput(
-            inputId = ns("current_savings"), 
-            label = "", 
-            value = 10000, 
-            decimalPlaces = 0, 
-            digitGroupSeparator = ","
-            ),
-          title = "Amount you have saved for retirement so far in USD",
-          placement = "right"
-        ),
-        width = 4, height = "400px"
+        uiOutput(ns("current_savings_ui")),
+        width = 4, height = "415px"
       )
     ),
     fluidRow(
       box(
         title = "Retirement Expenses",
         status = "secondary",
-        bs4Dash::tooltip(
-          autonumericInput(
-            inputId = ns("monthly_expense"), 
-            label = "", 
-            value = 500, 
-            decimalPlaces = 0, 
-            digitGroupSeparator = ","
-            ),
-          title = "Estimated monthly expenses during retirement for housing, travel, etc.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(
-            inputId = ns("healthcare_cost"), 
-            label = "", 
-            value = 800, 
-            decimalPlaces = 0, 
-            digitGroupSeparator = ","
-          ),
-          title = "Estimated annual healthcare costs during retirement",
-          placement = "right"
-        ),
+        uiOutput(ns("monthly_expense_ui")),
+        uiOutput(ns("healthcare_cost_ui")),
         width = 6, height = "220px"
       ),
       box(
         title = "Income & Withdrawal Strategy",
         status = "secondary",
-        bs4Dash::tooltip(
-          autonumericInput(
-            inputId = ns("other_retirement_income"),
-            label = "", 
-            value = 300,
-            decimalPlaces = 0,
-            digitGroupSeparator = ","
+        uiOutput(ns("other_retirement_income_ui")),
+        textInput(
+          inputId = ns("withdrawal_rate"),
+          label = label_with_info(
+            label_text = "Withdrawal Rate (%)",
+            info_id = ns("withdrawal_rate_info"),
+            popover_title = "Withdrawal Rate (%)",
+            popover_content = "The rule‑of‑thumb percentage of your retirement nest egg you plan to withdraw each year (e.g., 4 % “safe‑withdrawal rule”). Determines whether savings are sufficient and how long they will last."
           ),
-          title = "Other retirement income expected per month",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          textInput(ns("withdrawal_rate"), label = "Withdrawal Rate (%)", value = "4"),
-          title = "Planned annual withdrawal rate from your retirement savings",
-          placement = "right"
+          value = "4"
         ),
         width = 6, height = "220px"
       )
@@ -232,42 +216,96 @@ retirementCalcServer <- function(id) {
       input$currency  # e.g., "USD", "EUR", etc.
     })  
 
-    # ------------------------------------------------------------------
-    # 1) Dynamically update input labels (the tooltips remain unchanged)
-    # ------------------------------------------------------------------
-    observe({
-      cur <- selectedCurrency() 
-      # Update the labels of the inputs based on the selected currency      
-      updateAutonumericInput(
-        session, 
-        "pre_tax_income",
-        label = paste("Current Annual Income (", cur, "):", sep = "")
-      )
+    output$pre_tax_income_ui <- renderUI({
+      # grab the current currency
+      cur <- input$currency
       
-      updateAutonumericInput(
-        session, 
-        "current_savings",
-        label = paste("Current retirement savings (including DB/DC) (", cur, "):", sep = "")
+      autonumericInput(
+        inputId           = ns("pre_tax_income"),
+        label             = label_with_info(
+                              paste0("Current pre-tax income (", cur, "):"),
+                              ns("pre_tax_income_info"),
+                              "Pre-tax Income",
+                              "Your gross (pre-tax) income this year in the chosen currency. It is the base for two things: (1) calculating annual contributions (using “Future savings %”) and (2) benchmarking how much income you may need in retirement (“Income needed %”)."
+                            ),
+        value             = 80000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      
-      updateAutonumericInput(
-        session, 
-        "monthly_expense",
-        label = paste("Monthly retirement expenses (", cur, "):", sep = "")
-      )
-      
-      updateAutonumericInput(
-        session, 
-        "healthcare_cost",
-        label = paste("Healthcare costs (", cur, "/year):", sep = "")
-      )
-
-       updateAutonumericInput(
-        session, 
-        "other_retirement_income",
-        label = paste("Other retirement income (", cur, "/month):", sep = "")
-      )     
     })
+
+    output$current_savings_ui <- renderUI({
+      # grab the current currency
+      cur <- input$currency
+      
+      autonumericInput(
+        inputId           = ns("current_savings"),
+        label             = label_with_info(
+                              paste("Current retirement savings (including DB/DC) (", cur, "):", sep = ""),
+                              ns("current_savings_info"),
+                              "Current retirement savings (including DB/DC)",
+                              "The total balance of all retirement accounts today—pensions, 401(k)/403(b), IRAs, provident funds, etc.—in the selected currency. It is the starting principal for the growth projection."
+                            ),
+        value             = 10000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
+      )
+    })
+
+    output$monthly_expense_ui <- renderUI({
+      # grab the current currency
+      cur <- input$currency
+      
+      autonumericInput(
+        inputId           = ns("monthly_expense"),
+        label             = label_with_info(
+                              paste("Monthly retirement expenses (", cur, "):", sep = ""),
+                              ns("monthly_expense_info"),
+                              "Monthly retirement expenses",
+                              "Your expected average monthly living costs once retired (housing, food, utilities, leisure, etc.). Express it in today’s money; the calculator treats it as level spending for simplicity."
+                            ),
+        value             = 500,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
+      )
+    })
+
+    output$healthcare_cost_ui <- renderUI({
+      # grab the current currency
+      cur <- input$currency
+      
+      autonumericInput(
+        inputId           = ns("healthcare_cost"),
+        label             = label_with_info(
+                              paste("Healthcare costs (", cur, "/year):", sep = ""),
+                              ns("healthcare_cost_info"),
+                              "Healthcare costs",
+                              "Your estimated annual out‑of‑pocket health‑care and insurance premiums during retirement (in current currency terms). Added on top of general living expenses."
+                            ),
+        value             = 800,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
+      )
+    })
+
+    output$other_retirement_income_ui <- renderUI({
+      # grab the current currency
+      cur <- input$currency
+      
+      autonumericInput(
+        inputId           = ns("other_retirement_income"),
+        label             = label_with_info(
+                              paste("Other retirement income (", cur, "/month):", sep = ""),
+                              ns("other_retirement_income_info"),
+                              "Other retirement income",
+                              "Any predictable monthly income streams in retirement that aren’t drawn from your savings—e.g., Social Security, government pension, annuity payments, rental cash‑flow, or part‑time work."
+                            ),
+        value             = 300,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
+      )
+    })
+
     
     # 2) Translate button
     # When Translate button is clicked, trigger translation using the dropdown
@@ -389,7 +427,7 @@ retirementCalcServer <- function(id) {
         savings_data = data.frame(Age = current_age:retirement_age, Savings = savings)
       )
     })
-  }, ignoreInit = FALSE, ignoreNULL = FALSE) 
+  }, ignoreInit = TRUE, ignoreNULL = FALSE) 
 
     # 4) Smooth-scroll only after user actually clicks the button
     observeEvent(input$calculate, ignoreInit = TRUE, {
@@ -473,7 +511,7 @@ retirementCalcServer <- function(id) {
               if (is.infinite(res$savings_duration)) "N/A" else paste0(res$savings_duration, " years"), 
             "</li>",
           "</ul>",
-          
+           
           "<h4 style='margin-top: 0; color: #2c3e50; margin-bottom: 10px;'>Recommendation</h4>",
           "<p style='font-size: 16px; line-height: 1.5; margin: 0;'>", res$recommendation, "</p>",
         "</div>"
