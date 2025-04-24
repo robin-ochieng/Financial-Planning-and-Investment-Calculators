@@ -8,7 +8,8 @@ label_with_info <- function(label_text, info_id, popover_title, popover_content)
         inputId = info_id,
         label = NULL,
         icon = icon("info-circle"),
-        class   = "info-icon"
+        class   = "info-icon",
+        tabindex = 0
       ),
       title = popover_title,
       content = popover_content,
