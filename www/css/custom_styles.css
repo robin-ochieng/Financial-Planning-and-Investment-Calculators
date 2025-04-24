@@ -138,11 +138,13 @@
 }
 
 .info-icon {
-  color: rgb(68, 66, 66);
-  margin-left: 3px;
-  cursor: pointer;
+  margin-left: 2px;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer; 
   border: none;
   background: none;
+  color: #555;
 }
 
 /* Hide the .menu-container on smaller screens */
