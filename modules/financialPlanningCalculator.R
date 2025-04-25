@@ -56,9 +56,17 @@ financialPlanningCalcUI <- function(id) {
       column(
         width = 4,
         bs4Dash::tooltip(
-          selectInput(ns("goal"), "Select your Financial Goal:",
-                      choices = names(goalSettings),
-                      selected = "Building a House"),
+          selectInput(
+            inputId = ns("goal"),
+            label = label_with_info(
+              label_text = "Select your Financial Goal:",
+              info_id = ns("goal_info"),
+              popover_title = "Select your Financial Goal",
+              popover_content = "Select your financial goal. For each goal, default minimum amounts and terms are defined."
+            ),
+            choices = names(goalSettings),
+            selected = "Building a House"
+          ),
           title = "Select your financial goal. For each goal, default minimum amounts and terms are defined.",
           placement = "right"
         )
@@ -68,8 +76,13 @@ financialPlanningCalcUI <- function(id) {
         bs4Dash::tooltip(
           shiny::tagAppendAttributes(
             selectInput(
-              ns("currency"),
-              label = "Select Desired Currency:",
+              inputId = ns("currency"),
+              label = label_with_info(
+                label_text = "Select Preferred Currency",
+                info_id = ns("currency_info"),
+                popover_title = "Select Preferred Currency",
+                popover_content = "Select the currency in which results should be displayed."
+              ), 
               choices = list(
                 "US Dollar (USD)" = "USD",
                 "Euro (EUR)" = "EUR",
@@ -101,55 +114,15 @@ financialPlanningCalcUI <- function(id) {
         height = "500px",
         collapsible = TRUE,
         # Annual Income
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("income"), 
-                           label = "",  
-                           value = 80000, 
-                           decimalPlaces = 0, 
-                           digitGroupSeparator = ","),
-          title = "Enter your current annual income.",
-          placement = "right"
-        ),
+          uiOutput(ns("income_ui")),
         # Monthly Expenses
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("expenses"), 
-                           label = "",  
-                           value = 3000, 
-                           decimalPlaces = 0, 
-                           digitGroupSeparator = ","),
-          title = "Enter your average monthly expenses.",
-          placement = "right"
-        ),
+          uiOutput(ns("expenses_ui")),
         # Current Savings
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("savings"), 
-                           label = "",  
-                           value = 200000, 
-                           decimalPlaces = 0, 
-                           digitGroupSeparator = ","),
-          title = "Enter the total amount you currently have saved.",
-          placement = "right"
-        ),
+          uiOutput(ns("savings_ui")),
         # Total Debt
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("debt"), 
-                           label = "",  
-                           value = 30000, 
-                           decimalPlaces = 0, 
-                           digitGroupSeparator = ","),
-          title = "Enter your current total debt.",
-          placement = "right"
-        ),
+          uiOutput(ns("debt_ui")),
         # Emergency Fund
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("emergency"), 
-                           label = "",  
-                           value = 15000, 
-                           decimalPlaces = 0, 
-                           digitGroupSeparator = ","),
-          title = "Enter the amount set aside for emergencies.",
-          placement = "right"
-        )
+          uiOutput(ns("emergency_ui"))
      ),
       bs4Card(
         title = "Goal Settings & Economic Assumptions",
@@ -157,25 +130,39 @@ financialPlanningCalcUI <- function(id) {
         width = 6,
         height = "500px",
         collapsible = TRUE,
-         # Goal Amount (auto defaults based on selected goal if desired)
+        # Goal Amount (auto defaults based on selected goal if desired)
+          uiOutput(ns("goal_amount_ui")),
+        # Goal Term in years
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("goal_amount"), 
-                           label = "",  
-                           value = 50000, 
-                           decimalPlaces = 0, 
-                           digitGroupSeparator = ","),
-          title = "Enter the target amount you want to achieve for your selected goal.",
-          placement = "right"
-        ),
-         # Goal Term in years
-        bs4Dash::tooltip(
-          numericInput(ns("goal_term"), "Goal Term (years):", value = 5, min = 0.25, step = 0.25),
+          numericInput(
+            inputId = ns("goal_term"), 
+            label = label_with_info(
+              label_text = "Goal Term (years):",
+              info_id = ns("goal_term_info"),
+              popover_title = "Goal Term (years)",
+              popover_content = "Enter the number of years by which you want to achieve your goal. This is the time frame in which you plan to reach your financial target. It is used to calculate the future value of your investments."
+            ),
+            value = 5, 
+            min = 0.25, 
+            step = 0.25
+          ),
           title = "Enter the number of years by which you want to achieve your goal.",
           placement = "right"
         ),
          # Expected Rate of Return
         bs4Dash::tooltip(
-          numericInput(ns("exp_return"), "Expected Annual Return (%):", value = 7, min = 0, step = 0.1),
+          numericInput(
+            inputId = ns("exp_return"),
+            label = label_with_info(
+              label_text = "Expected Annual Return (%):",
+              info_id = ns("exp_return_info"),
+              popover_title = "Expected Annual Return (%)",
+              popover_content = "Enter the expected annual rate of return on your investments. This is the rate at which you expect your investments to grow annually. It is used to calculate the future value of your investments."
+            ),
+            value = 7, 
+            min = 0, 
+            step = 0.1
+          ),
           title = "Enter the expected annual rate of return on your investments.",
           placement = "right"
         )                       
@@ -254,30 +241,102 @@ financialPlanningCalcServer <- function(id) {
       paste0(sym, " ", format(round(amount, 0), big.mark = ","))
     }
     
-    # -----------------------------------------------------------------
-    # B) DYNAMICALLY UPDATE INPUT LABELS BASED ON SELECTED CURRENCY
-    # -----------------------------------------------------------------
-    observe({
-      cur <- input$currency  # e.g. "USD", "EUR"
-      
-      # Re-label each input to reflect the chosen currency
-      updateAutonumericInput(session, "income", 
-        label = paste0("Annual Income (", cur, "):")
+    # (B) HELPER: Create a label with an info icon that shows a tooltip on hover
+    output$income_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("income"),
+        label             = label_with_info(
+                              paste0("Annual Income (", cur, "):"),
+                              ns("income_info"),
+                              "Annual Income",
+                              "Enter your total annual income before taxes and deductions. This is the amount you earn in a year. It is used to calculate your savings rate and future value of investments."
+                            ),
+        value             = 80000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      updateAutonumericInput(session, "expenses", 
-        label = paste0("Monthly Expenses (", cur, "):")
+    })
+
+    output$expenses_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("expenses"),
+        label             = label_with_info(
+                              paste0("Monthly Expenses (", cur, "):"),
+                              ns("expenses_info"),
+                              "Monthly Expenses",
+                              "Enter your total monthly expenses. This is the amount you spend in a month. It is used to calculate your annual savings and emergency fund status."
+                            ),
+        value             = 3000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      updateAutonumericInput(session, "savings", 
-        label = paste0("Current Savings (", cur, "):")
+    })
+
+
+    output$savings_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("savings"),
+        label             = label_with_info(
+                              paste0("Current Savings (", cur, "):"),
+                              ns("savings_info"),
+                              "Current Savings",
+                              "Enter your current savings. This is the amount you have saved so far. It is used to calculate your net worth and future value of investments."
+                            ),
+        value             = 200000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      updateAutonumericInput(session, "debt", 
-        label = paste0("Total Debt (", cur, "):")
+    })
+
+
+    output$debt_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("debt"),
+        label             = label_with_info(
+                              paste0("Total Debt (", cur, "):"),
+                              ns("debt_info"),
+                              "Total Debt",
+                              "Enter your total debt. This is the amount you owe to creditors. It is used to calculate your net worth."              
+                            ),
+        value             = 30000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      updateAutonumericInput(session, "emergency", 
-        label = paste0("Emergency Fund (", cur, "):")
+    })
+
+    output$emergency_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("emergency"),
+        label             = label_with_info(
+                              paste0("Emergency Fund (", cur, "):"),
+                              ns("emergency_info"),
+                              "Emergency Fund",
+                              "Enter the amount you have set aside for emergencies. This is the amount you have saved for unexpected expenses. It is used to assess your emergency fund status."
+                            ),
+        value             = 15000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      updateAutonumericInput(session, "goal_amount",
-        label = paste0("Goal Amount (", cur, "):")
+    })
+
+    output$goal_amount_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("goal_amount"),
+        label             = label_with_info(
+                              paste0("Goal Amount (", cur, "):"),
+                              ns("goal_amount_info"),
+                              "Goal Amount",
+                              "Enter the total amount you want to save for your goal. This is the target amount you want to achieve by the end of the goal term. It is used to calculate the required monthly savings."
+                            ),
+        value             = 50000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
     })
 
@@ -366,7 +425,7 @@ financialPlanningCalcServer <- function(id) {
            req_monthly = req_monthly,
            emergency_status = emergency_status)
       })
-    }, ignoreInit = FALSE, ignoreNULL = FALSE)
+    }, ignoreInit = TRUE, ignoreNULL = FALSE)
     
     # -----------------------------------------------------------------
     # E) RESULT SUMMARY
@@ -413,7 +472,7 @@ financialPlanningCalcServer <- function(id) {
       nominal <- total_principal * (1 + r)^years + annual_savings * (((1 + r)^years - 1) / r)
       
       data.frame(Year = years, Nominal = nominal)
-    }, ignoreInit = FALSE, ignoreNULL = FALSE)
+    }, ignoreInit = TRUE, ignoreNULL = FALSE)
     
     output$scheduleTable <- renderDataTable({
       df <- scheduleData()
