@@ -48,7 +48,7 @@ irrCalcUI <- function(id) {
         bs4Dash::tooltip(
           shiny::tagAppendAttributes(
             selectInput(
-              ns("currency"), 
+              inputId = ns("currency"), 
               label = label_with_info(
                 label_text = "Select Preferred Currency",
                 info_id = ns("currency_info"),
