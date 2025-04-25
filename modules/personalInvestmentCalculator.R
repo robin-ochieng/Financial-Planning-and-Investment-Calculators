@@ -44,8 +44,13 @@ personalInvestmentCalcUI <- function(id) {
         bs4Dash::tooltip(
           shiny::tagAppendAttributes(
             selectInput(
-              ns("currency"), 
-              label = "Select Preferred Currency", 
+              inputId = ns("currency"), 
+              label = label_with_info(
+                label_text = "Select Preferred Currency",
+                info_id = ns("currency_info"),
+                popover_title = "Select Preferred Currency",
+                popover_content = "Select the currency in which results should be displayed."
+              ),  
               choices = list(
                 "US Dollar (USD)" = "USD",
                 "Euro (EUR)" = "EUR",
@@ -74,31 +79,40 @@ personalInvestmentCalcUI <- function(id) {
         status = "secondary",
         title = "Investment Inputs", width = 5, height = "535px", 
         # Tooltips for each field
+        uiOutput(ns("initial_ui")),
+        uiOutput(ns("contribution_ui")),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("initial"), label = "", value = 100000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "The lump sum you invest at the start.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("contribution"), label = "", value = 50000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "The amount you add to your investment every month.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("rate"), "Annual Interest Rate (%):", value = 7, min = 0, step = 0.1),
+          numericInput(
+            inputId = ns("rate"), 
+            label = label_with_info(
+              label_text = "Annual Interest Rate (%):",
+              info_id = ns("rate_info"),
+              popover_title = "Annual Interest Rate (%)",
+              popover_content = "The expected annual return on your investment. This is the rate at which your investment is expected to grow each year."
+            ),
+            value = 7, 
+            min = 0, 
+            step = 0.1
+          ),
           title = "The expected annual return on your investment.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("years"), "Investment Duration (years):", value = 20, min = 1, step = 1),
+          numericInput(
+            inputId = ns("years"), 
+            label = label_with_info(
+              label_text = "Investment Duration (years):",
+              info_id = ns("years_info"),
+              popover_title = "Investment Duration (years)",
+              popover_content = "The number of years you plan to invest your money. This is the time horizon for your investment."
+            ),            
+            value = 20, 
+            min = 1, 
+            step = 1),
           title = "How many years you plan to invest.",
           placement = "right"
         ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("goal"), label = "", value = 500000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "A target amount you want to achieve, which can help determine how much you need to save or invest.",
-          placement = "right"
-        )
+        uiOutput(ns("goal_ui"))
       ),
       # Results box on the right
       box(
@@ -165,7 +179,8 @@ personalInvestmentCalcServer <- function(id) {
         cur  # fallback if no match
       )
     }
-    
+
+
     # ----------------------------------------------------------------
     # B) HELPER FUNCTION: Format amounts using selected currency symbol
     # ----------------------------------------------------------------
@@ -178,19 +193,54 @@ personalInvestmentCalcServer <- function(id) {
     selectedCurrency <- reactive({
       input$currency  # e.g., "USD", "EUR", etc.
     })
-    
-    # ----------------------------------------------------------------
-    # 1) Dynamically update input labels to reflect selected currency
-    # ----------------------------------------------------------------
-    observe({
-      cur <- selectedCurrency() 
-      sym <- currencySymbol(input$currency)
-      updateAutonumericInput(session, "initial", 
-                             label = paste("Initial Investment (", cur, "):", sep = ""))
-      updateAutonumericInput(session, "contribution", 
-                             label = paste("Monthly Contribution (", cur, "):", sep = ""))
-      updateAutonumericInput(session, "goal", 
-                             label = paste("Goal Amount (", cur, "):", sep = ""))
+
+    # (C) HELPER: Create a label with an info icon that shows a tooltip on hover
+    output$initial_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("initial"),
+        label             = label_with_info(
+                              paste("Initial Investment (", cur, "):", sep = ""),
+                              ns("initial_info"),
+                              "Initial Investment",
+                              "The lump sum you invest at the start. This is the amount you start with in your investment account. It is used to calculate the future value of your investment."
+                            ),
+        value             = 100000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
+      )
+    })
+  
+    output$contribution_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("contribution"),
+        label             = label_with_info(
+                              paste("Monthly Contribution (", cur, "):", sep = ""),
+                              ns("contribution_info"),
+                              "Monthly Contribution",
+                              "The amount you add to your investment every month. This is the amount you contribute to your investment account each month. It is used to calculate the future value of your investment."
+                            ),
+        value             = 50000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
+      )
+    })
+
+    output$goal_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("goal"),
+        label             = label_with_info(
+                              paste("Goal Amount (", cur, "):", sep = ""),
+                              ns("goal_info"),
+                              "Monthly Contribution",
+                              "The target amount you want to achieve. This is the amount you want to have in your investment account at the end of the investment period. It is used to determine if your investment strategy is on track to meet your goals."
+                            ),
+        value             = 500000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
+      )
     })
 
 
@@ -285,7 +335,7 @@ personalInvestmentCalcServer <- function(id) {
         goal = goal
       )
       })
-    }, ignoreInit = FALSE, ignoreNULL = FALSE)
+    }, ignoreInit = TRUE, ignoreNULL = FALSE)
 
     # Scroll to projection box when compute is pressed
     observeEvent(input$calculate, {
