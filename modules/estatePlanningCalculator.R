@@ -46,8 +46,20 @@ estatePlanningCalcUI <- function(id) {
                 info_id = ns("currency_info"),
                 popover_title = "Select Preferred Currency",
                 popover_content = "Select the currency in which results should be displayed."
-              ),
-              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"),
+              ), 
+              choices = list(
+                "US Dollar (USD)" = "USD",
+                "Euro (EUR)" = "EUR",
+                "British Pound (GBP)" = "GBP",
+                "Japanese Yen (JPY)" = "JPY",
+                "Swiss Franc (CHF)" = "CHF",
+                "Canadian Dollar (CAD)" = "CAD",
+                "Australian Dollar (AUD)" = "AUD",
+                "Kenyan Shilling (KES)" = "KES",
+                "West African CFA franc (XOF)" = "XOF",
+                "Central African CFA franc (XAF)" = "XAF",
+                "Nigerian Naira (NGN)" = "NGN"                    
+                ), 
               selected = "USD"
             ),
             `data-trigger` = "click"
