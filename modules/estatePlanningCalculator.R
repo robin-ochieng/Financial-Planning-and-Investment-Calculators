@@ -2,7 +2,28 @@
 # Module UI Function for the Estate Planning module
 estatePlanningCalcUI <- function(id) {
   ns <- NS(id)
+    # ------------------ NEW HEADER WITH LOGOS -------------------
+  logo_bar <- fluidRow(
+    class = "logo-bar",                     # you’ll style this in CSS
+    column(
+      width = 12,
+      tags$div(
+        class = "logo-wrapper d-flex justify-content-between align-items-center",
+        # left-hand logo
+        tags$img(
+          src   = "images/kenbright.png",
+          class = "logo logo-kenbright"
+        ),
+        # right-hand logo
+        tags$img(
+          src   = "images/afdb logo.png",
+          class = "logo logo-afdb"
+        )
+      )
+    )
+  )
   tagList(
+    logo_bar,
     shinyjs::useShinyjs(),
     # Include Google Translate scripts in the header
     tags$head(
