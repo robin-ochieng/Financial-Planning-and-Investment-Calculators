@@ -5,7 +5,7 @@ account: kenbright
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14095289
-bundleId: 9968286
+bundleId: 10179302
 url: https://kenbright.shinyapps.io/FinancialandRetirementPlanning/
 version: 1
 asMultiple: FALSE
