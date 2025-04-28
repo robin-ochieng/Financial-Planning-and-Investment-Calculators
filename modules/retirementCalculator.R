@@ -252,7 +252,9 @@ retirementCalcServer <- function(id) {
                               paste0("Current pre-tax income (", cur, "):"),
                               ns("pre_tax_income_info"),
                               "Pre-tax Income",
-                              "Your gross (pre-tax) income this year in the chosen currency. It is the base for two things: (1) calculating annual contributions (using “Future savings %”) and (2) benchmarking how much income you may need in retirement (“Income needed %”)."
+                              "Your gross (pre-tax) income this year in the chosen currency. It is the base for two things:
+                               (1) calculating annual contributions (using “Future savings %”) and 
+                               (2) benchmarking how much income you may need in retirement (“Income needed %”)."
                             ),
         value             = 3500,
         decimalPlaces     = 0,
