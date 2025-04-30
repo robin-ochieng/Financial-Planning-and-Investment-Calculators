@@ -48,9 +48,26 @@ irrCalcUI <- function(id) {
         bs4Dash::tooltip(
           shiny::tagAppendAttributes(
             selectInput(
-              ns("currency"), 
-              label = "Select Preferred Currency", 
-              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"), 
+              inputId = ns("currency"), 
+              label = label_with_info(
+                label_text = "Select Preferred Currency",
+                info_id = ns("currency_info"),
+                popover_title = "Select Preferred Currency",
+                popover_content = "Select the currency in which results should be displayed."
+              ), 
+              choices = list(
+                "US Dollar (USD)" = "USD",
+                "Euro (EUR)" = "EUR",
+                "British Pound (GBP)" = "GBP",
+                "Japanese Yen (JPY)" = "JPY",
+                "Swiss Franc (CHF)" = "CHF",
+                "Canadian Dollar (CAD)" = "CAD",
+                "Australian Dollar (AUD)" = "AUD",
+                "Kenyan Shilling (KES)" = "KES",
+                "West African CFA franc (XOF)" = "XOF",
+                "Central African CFA franc (XAF)" = "XAF",
+                "Nigerian Naira (NGN)" = "NGN"       
+                ), 
               selected = "USD"
             ),
             `data-trigger` = "click"
@@ -63,84 +80,120 @@ irrCalcUI <- function(id) {
     fluidRow(
       box(
         status = "success",
-        title = "Personal & Retirement Profile", width = 6, height = "700px",
+        title = "Personal & Retirement Profile", width = 6, height = "715px",
         bs4Dash::tooltip(
-          textInput(inputId = ns("name"), label = "Full Name", value = "John Bosco"),
-          title = "Enter your full name.",
-          placement = "right"
+          textInput(
+            inputId = ns("name"), 
+            label = label_with_info(
+              label_text = "Full Name",
+              info_id = ns("name_info"),
+              popover_title = "Full Name",
+              popover_content = "The full name of the person running the calculation. It personalises the headline messages and makes printed reports easier to identify."
+            ),
+            value = "John Bosco"),
+            title = "Enter your full name.",
+            placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("current_age"), "Current Age", value = 50, min = 18, max = 100),
+          numericInput(
+            inputId = ns("current_age"), 
+            label = label_with_info(
+              label_text = "Current Age",
+              info_id = ns("current_age_info"),
+              popover_title = "Current Age",
+              popover_content = "Your age today (in whole years). This is used to determine how many saving / accumulation years are left before retirement and how long the projection must fund income."
+            ),
+            value = 50, 
+            min = 18, 
+            max = 100),
           title = "Enter your current age in years.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("retirement_age"), "Normal Retirement Age", value = 65, min = 40, max = 70),
+          numericInput(
+          inputId = ns("retirement_age"),   
+          label = label_with_info(
+            label_text = "Normal Retirement Age",
+            info_id = ns("retirement_age_info"),
+            popover_title = "Normal Retirement Age",
+            popover_content = "The age at which you plan to stop full-time work (“normal” retirement). This sets the end of the contribution phase and the first year income withdrawals start."
+          ),          
+          value = 65, 
+          min = 40, 
+          max = 70
+          ),
           title = "Enter the age at which you plan to retire.",
           placement = "right"
         ),
+        uiOutput(ns("salary_ui")),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("salary"), label = "", value = 65000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "Enter your current monthly salary.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("contribution_rate"), "Total Contribution Rate (%)", value = 30, min = 0, max = 100),
+          numericInput(
+            inputId = ns("contribution_rate"),
+            label = label_with_info(
+              label_text = "Total Contribution Rate (%)",
+              info_id = ns("contribution_rate_info"),
+              popover_title = "Total Contribution Rate (%)",
+              popover_content = "The total retirement contribution as a percentage of salary. This determines how much fresh money is added to the retirement fund every year up to retirement."
+            ),            
+            value = 30,
+            min = 0, 
+            max = 100),
           title = "Enter the percentage of your salary that you contribute to your retirement fund.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("investment_return"), "Investment Return (%)", value = 11, min = 0, max = 100),
+          numericInput(
+            inputId = ns("investment_return"), 
+            label = label_with_info(
+              label_text = "Investment Return (%)",
+              info_id = ns("investment_return_info"),
+              popover_title = "Investment Return (%)",
+              popover_content = "Expected annual nominal return on the retirement fund (before retirement).This is used to compound current balance and future contributions."
+            ),
+            value = 11, 
+            min = 0, 
+            max = 100
+          ),
           title = "Enter the expected annual return on your investments.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("salary_escalation"), "Salary Escalation (%)", value = 8, min = 0, max = 100),
+          numericInput(
+            inputId = ns("salary_escalation"),
+            label = label_with_info(
+              label_text = "Salary Escalation (%)",
+              info_id = ns("salary_escalation_info"),
+              popover_title = "Salary Escalation (%)",
+              popover_content = "Expected annual percentage increase in your salary. Each year the salary (and therefore contributions) is grown by this rate until retirement age."
+            ),
+            value = 8, 
+            min = 0, 
+            max = 100),
           title = "Enter the expected annual increase in your salary.",
           placement = "right"
         ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("fund_balance"), label = "", value = 10000000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "Enter the current balance of your retirement fund.",
-          placement = "right"
-        )
+        uiOutput(ns("fund_balance_ui"))
       ),
       box(
         status = "success",
-        title = "Retirement Income & Assumptions", width = 6, height = "700px",
+        title = "Retirement Income & Assumptions", width = 6, height = "715px",
+        uiOutput(ns("social_security_ui")),
+        uiOutput(ns("pension_income_ui")),
+        uiOutput(ns("savings_withdrawal_ui")),
         bs4Dash::tooltip(
-          autonumericInput(inputId = ns("social_security"), label = "", value = 80000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "Enter your expected annual Social Security benefit.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("pension_income"), label = "", value = 200000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "Enter your expected annual pension income.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("savings_withdrawal"), label = "", value = 90000, decimalPlaces = 0, digitGroupSeparator = ","),
-          title = "Enter the expected annual withdrawal from your retirement savings.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("desired_IRR"), "Desired Income Replacement Ratio (%)", value = 55, min = 0, max = 100),
+          numericInput(
+            inputId = ns("desired_IRR"), 
+            label = label_with_info(
+              label_text = "Desired Income Replacement Ratio (%)",
+              info_id = ns("desired_IRR_info"),
+              popover_title = "Desired Income Replacement Ratio (%)",
+              popover_content = "Your target income-replacement ratio expressed as a percentage of your final pre-retirement annual salary. The calculator compares this target income with the total of guaranteed income + planned withdrawals to highlight any shortfall or surplus."
+            ),
+            value = 55, 
+            min = 0, 
+            max = 100
+          ),
           title = "Enter the desired percentage of your pre-retirement income you wish to replace during retirement.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("tax_rate"), "Tax Rate (%)", value = 15, min = 0, max = 100),
-          title = "Enter the tax rate applicable to your pension and savings withdrawals.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("inflation_rate"), "Inflation Rate (%)", value = 2, min = 0, max = 100),
-          title = "Enter the expected annual inflation rate.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          numericInput(ns("life_expectancy"), "Life Expectancy (years)", value = 85, min = 0),
-          title = "Enter your expected life expectancy.",
           placement = "right"
         )
       )
@@ -212,7 +265,10 @@ irrCalcServer <- function(id) {
         "CAD" = "C$",
         "AUD" = "A$",
         "KES" = "KSh.",
-        cur  # fallback: just show the code
+        "XOF" = "F CFA",
+        "XAF" = "FCFA",
+        "NGN" = "₦",
+        cur  # fallback: just use the code if unrecognized
       )
     }
 
@@ -224,28 +280,84 @@ irrCalcServer <- function(id) {
       paste0(sym, " ", format(round(amount, 0), big.mark = ","))
     }
 
-    # 1) Dynamically update the input labels so they reflect the selected currency
-    observe({
-      cur <- selectedCurrency()
-      # Salary label
-      updateAutonumericInput(session, "salary",
-        label = paste("Current Monthly Salary (", cur, "):", sep = "")
+    # (C) HELPER: Create a label with an info icon that shows a tooltip on hover
+    output$salary_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("salary"),
+        label             = label_with_info(
+                              paste("Current Monthly Salary (", cur, "):", sep = ""),
+                              ns("salary_info"),
+                              "Current Monthly Salary",
+                              "Your current gross monthly salary in the selected currency. It drives two key figures: (1) the annual income benchmark that the desired replacement ratio will be applied to, and (2) the cash base on which the contribution-rate percentage is calculated."
+                            ),
+        value             = 65000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      # Fund balance label
-      updateAutonumericInput(session, "fund_balance",
-        label = paste("Current Fund Balance (", cur, "):", sep = "")
+    })
+
+    output$fund_balance_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("fund_balance"),
+        label             = label_with_info(
+                              paste("Current Fund Balance (", cur, "):", sep = ""),
+                              ns("fund_balance_info"),
+                              "Current Fund Balance",
+                              "The current balance of your retirement fund in the selected currency. This is the starting point for the projection and is compounded by the investment return and salary escalation rates."
+                            ),
+        value             = 10000000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      # Social Security label
-      updateAutonumericInput(session, "social_security",
-        label = paste("Social Security (", cur, "/year):", sep = "")
+    })
+
+    output$social_security_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("social_security"),
+        label             = label_with_info(
+                              paste("Social Security (", cur, "/year):", sep = ""),
+                              ns("social_security_info"),
+                              "Social Security",
+                              "Your expected annual Social Security benefit in the selected currency. This is a guaranteed income stream that will be added to your retirement income."
+                            ),
+        value             = 80000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      # Pension label
-      updateAutonumericInput(session, "pension_income",
-        label = paste("Pension (", cur, "/year):", sep = "")
+    })
+
+    output$pension_income_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("pension_income"),
+        label             = label_with_info(
+                              paste("Pension (", cur, "/year):", sep = ""),
+                              ns("pension_income_info"),
+                              "Pension",
+                              "Your expected annual pension income in the selected currency. This is another guaranteed income stream that will be added to your retirement income."
+                            ),
+        value             = 200000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
-      # Savings withdrawal label
-      updateAutonumericInput(session, "savings_withdrawal",
-        label = paste("Retirement Savings Withdrawal (", cur, "/year):", sep = "")
+    })
+
+    output$savings_withdrawal_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("savings_withdrawal"),
+        label             = label_with_info(
+                              paste("Retirement Savings Withdrawal (", cur, "/year):", sep = ""),
+                              ns("savings_withdrawal_info"),
+                              "Retirement Savings Withdrawal",
+                              "Expected annual withdrawal from your retirement savings in the selected currency. This is the amount you plan to withdraw from your retirement fund each year."
+                            ),
+        value             = 90000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
     })
 
@@ -314,20 +426,13 @@ irrCalcServer <- function(id) {
       total_ret_income <- input$social_security + input$pension_income + input$savings_withdrawal
       
       # Step 3: Tax Adjustments
-      incProgress(0.1, detail = "Calculating taxes...")
-      # Calculate taxes on the taxable portion (pension and savings withdrawal)
-      taxable_income <- input$pension_income + input$savings_withdrawal
-      taxes <- taxable_income * (input$tax_rate / 100)
-      after_tax_income <- total_ret_income - taxes
+      incProgress(0.25, detail = "Calculating net income...")
+      # Assuming a flat tax rate of 30% for simplicity
+      after_tax_income_adj <- total_ret_income 
 
-      # Step 4: Inflation Adjustment
-      incProgress(0.2, detail = "Adjusting for inflation...")      
-      # Adjust for inflation over the years until retirement
-      inflation_factor <- (1 + input$inflation_rate / 100)^years_to_retirement
-      desired_IRR_value_adj <- desired_IRR_value * inflation_factor
-      after_tax_income_adj <- after_tax_income * inflation_factor
-      
-      # Step 5: Determine Shortfall
+      # No inflation adjustment is applied:
+      desired_IRR_value_adj <- desired_IRR_value 
+
       incProgress(0.15, detail = "Computing shortfall...")
       shortfall <- desired_IRR_value_adj - after_tax_income_adj
 
@@ -408,7 +513,7 @@ irrCalcServer <- function(id) {
                 "padding: 12px; border-left: 4px solid #007bff; border-radius: 4px;'>",
                   "<i class='fa fa-money-bill-wave' style='margin-right: 5px; color: #007bff;'></i>",
                   "<strong>After-Tax Income:</strong> ",
-                  formatCurrency(after_tax_income, input$currency), 
+                  formatCurrency(after_tax_income_adj, input$currency), 
                   " per year",
                 "</li>",
                 
@@ -417,16 +522,8 @@ irrCalcServer <- function(id) {
                 "padding: 12px; border-left: 4px solid #f0ad4e; border-radius: 4px;'>",
                   "<i class='fa fa-percentage' style='margin-right: 5px; color: #f0ad4e;'></i>",
                   "<strong>Desired IRR (Annual Replacement):</strong> ",
-                  formatCurrency(desired_IRR_value, input$currency),
+                  formatCurrency(desired_IRR_value_adj, input$currency),
                   " per year",
-                "</li>",
-                
-                # Inflation Factor
-                "<li style='margin-bottom: 10px; background-color: #f8f9fa; ",
-                "padding: 12px; border-left: 4px solid #6f42c1; border-radius: 4px;'>",
-                  "<i class='fa fa-chart-line' style='margin-right: 5px; color: #6f42c1;'></i>",
-                  "<strong>Inflation Factor (over ", years_to_retirement, " years):</strong> ",
-                  round(inflation_factor, 2),
                 "</li>",
                 
                 # Shortfall
@@ -551,7 +648,7 @@ irrCalcServer <- function(id) {
       })
 
     })  # End withProgress
-  }, ignoreInit = FALSE, ignoreNULL = FALSE)
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
     
   })
 }
