@@ -3,7 +3,7 @@
 estatePlanningCalcUI <- function(id) {
   ns <- NS(id)
   tagList(
-    # shinyjs::useShinyjs(),
+    shinyjs::useShinyjs(),
     # # Include Google Translate scripts in the header
     # tags$head(
     #   tags$script(src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"),
@@ -41,9 +41,26 @@ estatePlanningCalcUI <- function(id) {
         bs4Dash::tooltip(
           shiny::tagAppendAttributes(
             selectInput(
-              ns("currency"),
-              label = "Select Desired Currency:",
-              choices = c("USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "KES"),
+              inputId = ns("currency"),
+              label = label_with_info(
+                label_text = "Select Preferred Currency",
+                info_id = ns("currency_info"),
+                popover_title = "Select Preferred Currency",
+                popover_content = "Select the currency in which results should be displayed."
+              ), 
+              choices = list(
+                "US Dollar (USD)" = "USD",
+                "Euro (EUR)" = "EUR",
+                "British Pound (GBP)" = "GBP",
+                "Japanese Yen (JPY)" = "JPY",
+                "Swiss Franc (CHF)" = "CHF",
+                "Canadian Dollar (CAD)" = "CAD",
+                "Australian Dollar (AUD)" = "AUD",
+                "Kenyan Shilling (KES)" = "KES",
+                "West African CFA franc (XOF)" = "XOF",
+                "Central African CFA franc (XAF)" = "XAF",
+                "Nigerian Naira (NGN)" = "NGN"                    
+                ), 
               selected = "USD"
             ),
             `data-trigger` = "click"
@@ -60,60 +77,12 @@ estatePlanningCalcUI <- function(id) {
         status = "primary",
         width = 6,
         collapsible = TRUE,
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("real_estate"),  
-                          label = "",  
-                          value = 10000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the current market value of your real estate holdings.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("investments"),  
-                          label = "",  
-                          value = 5000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the value of your investment assets such as stocks, bonds, and mutual funds.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("bank_savings"),  
-                          label = "",  
-                          value = 3000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the amount in your bank savings accounts.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("business"),  
-                          label = "",  
-                          value = 8000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the estimated value of your business interests.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("personal_property"),  
-                          label = "",  
-                          value = 2000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the value of personal assets such as vehicles, jewelry, etc.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("other_assets"),  
-                          label = "",  
-                          value = 1000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the value of any other assets not listed above.",
-          placement = "right"
-        )
+          uiOutput(ns("real_estate_ui")),
+          uiOutput(ns("investments_ui")),
+          uiOutput(ns("bank_savings_ui")),
+          uiOutput(ns("business_ui")),
+          uiOutput(ns("personal_property_ui")),
+          uiOutput(ns("other_assets_ui"))
       ),
       bs4Card(
         title = "Liabilities",
@@ -121,42 +90,10 @@ estatePlanningCalcUI <- function(id) {
         width = 6,
         height = "555px",
         collapsible = TRUE,
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("mortgages"),  
-                          label = "",  
-                          value = 4000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the outstanding balance of your mortgages.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("loans"),  
-                          label = "",  
-                          value = 2000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the total amount of your personal loans.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("credit_cards"),  
-                          label = "",  
-                          value = 200000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the total outstanding balance on your credit cards.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("other_liabilities"),  
-                          label = "",  
-                          value = 500000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the total amount of any other liabilities.",
-          placement = "right"
-        )
+          uiOutput(ns("mortgages_ui")),
+          uiOutput(ns("loans_ui")),
+          uiOutput(ns("credit_cards_ui")),
+          uiOutput(ns("other_liabilities_ui"))
       )
     ),
     # Row 2: Deductions & Beneficiary Distribution
@@ -166,43 +103,22 @@ estatePlanningCalcUI <- function(id) {
         status = "warning",
         width = 6,
         collapsible = TRUE,
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("funeral_expenses"),  
-                          label = "",  
-                          value = 500000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the estimated cost of funeral expenses.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("estate_duty_rate"),  
-                          label = "Estate Duty Rate (%):", 
-                          value = 25,  
-                          decimalPlaces = 1,  
-                          digitGroupSeparator = ",",  
-                          minimumValue = "0"),
-          title = "Enter the estate duty rate as a percentage.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("estate_duty_exemption"),  
-                          label = "",  
-                          value = 5000000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter the exemption amount for estate duty.",
-          placement = "right"
-        ),
-        bs4Dash::tooltip(
-          autonumericInput(inputId = ns("other_deductions"),  
-                          label = "",  
-                          value = 300000, 
-                          decimalPlaces = 0, 
-                          digitGroupSeparator = ","),
-          title = "Enter any other deductions applicable to your estate.",
-          placement = "right"
-        )
+          uiOutput(ns("funeral_expenses_ui")),
+          numericInput(
+            inputId = ns("estate_duty_rate"), 
+            label = label_with_info(
+              label_text = "Estate Duty Rate (%):",
+              info_id = ns("estate_duty_rate_info"),
+              popover_title = "Estate Duty Rate (%)",
+              popover_content = "Enter the percentage rate of estate duty that applies to your estate. This is the tax levied on the transfer of your estate after your death."
+            ),
+            value = 25, 
+            min = 0, 
+            max = 100, 
+            step = 1
+          ),
+          uiOutput(ns("estate_duty_exemption_ui")),
+          uiOutput(ns("other_deductions_ui"))
       ),
       bs4Card(
         title = "Beneficiary Distribution (%)",
@@ -211,17 +127,53 @@ estatePlanningCalcUI <- function(id) {
         width = 6,
         collapsible = TRUE,
         bs4Dash::tooltip(
-          numericInput(ns("spouse_pct"), "Spouse (%):", value = 50, min = 0, max = 100, step = 1),
+          numericInput(
+            inputId = ns("spouse_pct"), 
+            label = label_with_info(
+              label_text = "Spouse (%):",
+              info_id = ns("spouse_pct_info"),
+              popover_title = "Spouse (%)",
+              popover_content = "Enter the percentage of your estate allocated to your spouse. This can include a partner or significant other."
+            ),
+            value = 50, 
+            min = 0, 
+            max = 100, 
+            step = 1
+          ),
           title = "Enter the percentage of your estate allocated to your spouse.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("children_pct"), "Children (%):", value = 30, min = 0, max = 100, step = 1),
-          title = "Enter the percentage of your estate allocated to your children.",
+          numericInput(
+            inputId = ns("children_pct"), 
+            label = label_with_info(
+              label_text = "Children (%):",
+              info_id = ns("children_pct_info"),
+              popover_title = "Children (%)",
+              popover_content = "Enter the percentage of your estate allocated to your children. This can include biological children, stepchildren, or adopted"
+            ),
+            value = 30, 
+            min = 0, 
+            max = 100, 
+            step = 1
+          ),
+          title = "Enter the percentage of your estate allocated to your children. This can include biological children, stepchildren, or adopted children.",
           placement = "right"
         ),
         bs4Dash::tooltip(
-          numericInput(ns("others_pct"), "Other Heirs (%):", value = 20, min = 0, max = 100, step = 1),
+          numericInput(
+            inputId = ns("others_pct"), 
+            label = label_with_info(
+              label_text = "Other Heirs (%):",
+              info_id = ns("others_pct_info"),
+              popover_title = "Other Heirs (%)",
+              popover_content = "Enter the percentage of your estate allocated to other heirs. This can include siblings, parents, or other relatives. It's important to specify how you want your estate divided among them."
+            ),
+            value = 20, 
+            min = 0, 
+            max = 100, 
+            step = 1
+          ),
           title = "Enter the percentage of your estate allocated to other heirs.",
           placement = "right"
         )
@@ -267,6 +219,7 @@ estatePlanningCalcServer <- function(id) {
     # -------------------------------------------------------------
     # A) HELPER: Map currency code to symbol
     # -------------------------------------------------------------
+    # 1) Map currency code to symbol
     currencySymbol <- function(cur) {
       switch(cur,
         "USD" = "$",
@@ -277,7 +230,10 @@ estatePlanningCalcServer <- function(id) {
         "CAD" = "C$",
         "AUD" = "A$",
         "KES" = "KSh.",
-        cur  # fallback
+        "XOF" = "F CFA",
+        "XAF" = "FCFA",
+        "NGN" = "₦",
+        cur  # fallback: just use the code if unrecognized
       )
     }
     
@@ -290,69 +246,215 @@ estatePlanningCalcServer <- function(id) {
     # -------------------------------------------------------------
     # 1) Dynamically update input labels to reflect selected currency
     # -------------------------------------------------------------
-    observe({
-      cur <- input$currency  # e.g. "USD", "EUR", etc.
-      sym <- currencySymbol(cur)
-      
-      # Assets
-      updateAutonumericInput(
-        session, "real_estate", 
-        label = paste("Real Estate (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "investments", 
-        label = paste("Investments (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "bank_savings",
-        label = paste("Bank Savings (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "business",
-        label = paste("Business Interests (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "personal_property",
-        label = paste("Personal Property (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "other_assets",
-        label = paste("Other Assets (", cur, "):", sep = "")
-      )
-      
-      # Liabilities
-      updateAutonumericInput(
-        session, "mortgages",
-        label = paste("Mortgages (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "loans",
-        label = paste("Loans (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "credit_cards",
-        label = paste("Credit Card Debts (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "other_liabilities",
-        label = paste("Other Liabilities (", cur, "):", sep = "")
-      )
-      
-      # Deductions
-      updateAutonumericInput(
-        session, "funeral_expenses",
-        label = paste("Funeral Expenses (", cur, "):", sep = "")
-      )
-      # estate_duty_rate label stays as % 
-      updateAutonumericInput(
-        session, "estate_duty_exemption",
-        label = paste("Estate Duty Exemption (", cur, "):", sep = "")
-      )
-      updateAutonumericInput(
-        session, "other_deductions",
-        label = paste("Other Deductions (", cur, "):", sep = "")
+    output$real_estate_ui <- renderUI({
+      cur <- input$currency
+      autonumericInput(
+        inputId           = ns("real_estate"),
+        label             = label_with_info(
+                              paste("Real Estate (", cur, "):", sep = ""),
+                              ns("real_estate_info"),
+                              "Real Estate",
+                              "Enter the total value of all real estate properties you own, including your primary residence and any rental properties."
+                            ),
+        value             = 10000000,
+        decimalPlaces     = 0,
+        digitGroupSeparator = ","
       )
     })
+
+      output$investments_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("investments"),
+          label             = label_with_info(
+                                paste("Investments (", cur, "):", sep = ""),
+                                ns("investments_info"),
+                                "Investments",
+                                "Enter the total value of all investments, including stocks, bonds, and mutual funds."
+                              ),
+          value             = 5000000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$bank_savings_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("bank_savings"),
+          label             = label_with_info(
+                                paste("Bank Savings (", cur, "):", sep = ""),
+                                ns("bank_savings_info"),
+                                "Bank Savings",
+                                "Enter the total value of all bank accounts, including checking and savings accounts."
+                              ),
+          value             = 3000000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$business_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("business"),
+          label             = label_with_info(
+                                paste("Business Interests (", cur, "):", sep = ""),
+                                ns("business_info"),
+                                "Business Interests",
+                                "Enter the total value of all business interests, including ownership stakes in companies, partnerships, and sole proprietorships."
+                              ),
+          value             = 8000000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$personal_property_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("personal_property"),
+          label             = label_with_info(
+                                paste("Personal Property (", cur, "):", sep = ""),
+                                ns("personal_property_info"),
+                                "Personal Property",
+                                "Enter the total value of all personal property, including vehicles, jewelry, land and collectibles."
+                              ),
+          value             = 2000000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$other_assets_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("other_assets"),
+          label             = label_with_info(
+                                paste("Other Assets (", cur, "):", sep = ""),
+                                ns("other_assets_info"),
+                                "Other Assets",
+                                "Enter the total value of any other assets not covered above."
+                              ),
+          value             = 1000000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$mortgages_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("mortgages"),
+          label             = label_with_info(
+                                paste("Mortgages (", cur, "):", sep = ""),
+                                ns("mortgages_info"),
+                                "Mortgages",
+                                "Enter the total value of all mortgages on your properties."
+                              ),
+          value             = 4000000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$loans_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("loans"),
+          label             = label_with_info(
+                                paste("Loans (", cur, "):", sep = ""),
+                                ns("loans_info"),
+                                "Loans",
+                                "Enter the total value of all loans, including personal loans, student loans, and auto loans."
+                              ),
+          value             = 2000000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$credit_cards_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("credit_cards"),
+          label             = label_with_info(
+                                paste("Credit Card Debts (", cur, "):", sep = ""),
+                                ns("credit_cards_info"),
+                                "Credit Card Debts",
+                                "Enter the total value of all credit card debts."
+                              ),
+          value             = 200000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$other_liabilities_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("other_liabilities"),
+          label             = label_with_info(
+                                paste("Other Liabilities (", cur, "):", sep = ""),
+                                ns("other_liabilities_info"),
+                                "Other Liabilities",
+                                "Enter the total value of any other liabilities not covered above."
+                              ),
+          value             = 500000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$funeral_expenses_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("funeral_expenses"),
+          label             = label_with_info(
+                                paste("Funeral Expenses (", cur, "):", sep = ""),
+                                ns("funeral_expenses_info"),
+                                "Funeral Expenses",
+                                "Enter the estimated cost of funeral and burial expenses."
+                              ),
+          value             = 500000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+
+      output$estate_duty_exemption_ui <- renderUI({
+        cur <- input$currency
+        numericInput(
+          inputId           = ns("estate_duty_exemption"),
+          label             = label_with_info(
+                                paste("Estate Duty Exemption (", cur, "):", sep = ""),
+                                ns("estate_duty_exemption_info"),
+                                "Estate Duty Exemption",
+                                "Enter the amount exempt from estate duty. This is the threshold above which estate duty applies."
+                              ),
+          value             = 25,
+          min               = 0,
+          max               = 100,
+          step              = 1
+        )
+      })
+
+      output$other_deductions_ui <- renderUI({
+        cur <- input$currency
+        autonumericInput(
+          inputId           = ns("other_deductions"),
+          label             = label_with_info(
+                                paste("Other Deductions (", cur, "):", sep = ""),
+                                ns("other_deductions_info"),
+                                "Other Deductions",
+                                "Enter the total value of any other deductions not covered above. This can include debts, funeral expenses, and other liabilities."
+                              ),
+          value             = 300000,
+          decimalPlaces     = 0,
+          digitGroupSeparator = ","
+        )
+      })
+  
     # # When Translate button is clicked, trigger translation using the dropdown
     # observeEvent(input$translate, {
     #   shinyjs::runjs("
@@ -458,7 +560,7 @@ estatePlanningCalcServer <- function(id) {
         summary_items = summary_items,
         total_pct     = total_pct
       )
-    }, ignoreInit = FALSE, ignoreNULL = FALSE)
+    }, ignoreInit = TRUE, ignoreNULL = FALSE)
   
     # [2] Smooth scroll on Calculate
     observeEvent(input$calculate, {
@@ -471,7 +573,7 @@ estatePlanningCalcServer <- function(id) {
     })
 
     # [4] A single UI output that styles the summary data & warning
-    output$summaryUI <- renderUI({
+     output$summaryUI <- renderUI({
       plan <- estatePlan()
       sitems <- plan$summary_items
       total_pct <- plan$total_pct
@@ -532,17 +634,6 @@ estatePlanningCalcServer <- function(id) {
         )
       }
 
-      # -----------------------------
-      # Disclaimer Section (NEW)
-      # -----------------------------
-      disclaimer_html <- paste0(
-        "<div style='font-size:14px; margin-top:20px; color:#555; font-style:italic;'>",
-          "<strong>Disclaimer:</strong> This calculator is provided for educational and illustrative purposes only. ",
-          "It does not constitute legal or financial advice. Please consult a qualified legal or financial professional ",
-          "for personalized guidance regarding your estate planning needs.",
-        "</div>"
-      )
-
       # Construct final HTML
       HTML(paste0(
         "<div style='font-family: \"Nunito\", sans-serif; font-size: 16px; color: #333; ",
@@ -554,9 +645,11 @@ estatePlanningCalcServer <- function(id) {
           "<ul style='list-style-type: none; padding-left: 0; margin-bottom: 0;'>",
             list_html,
           "</ul>",
+
           warning_html,  # place the warning below the list if needed
+
           action_items,  # Add the new Key Action Items block
-          disclaimer_html,  # Add the disclaimer at the end
+
         "</div>"
       ))
     })
