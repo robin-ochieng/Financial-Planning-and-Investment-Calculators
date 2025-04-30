@@ -240,6 +240,7 @@ estatePlanningCalcServer <- function(id) {
     # -------------------------------------------------------------
     # A) HELPER: Map currency code to symbol
     # -------------------------------------------------------------
+    # 1) Map currency code to symbol
     currencySymbol <- function(cur) {
       switch(cur,
         "USD" = "$",
@@ -250,7 +251,10 @@ estatePlanningCalcServer <- function(id) {
         "CAD" = "C$",
         "AUD" = "A$",
         "KES" = "KSh.",
-        cur  # fallback
+        "XOF" = "F CFA",
+        "XAF" = "FCFA",
+        "NGN" = "₦",
+        cur  # fallback: just use the code if unrecognized
       )
     }
     
