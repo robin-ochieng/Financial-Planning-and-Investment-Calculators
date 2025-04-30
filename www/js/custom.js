@@ -37,3 +37,16 @@ $(document).on("click", "a.nav-link[data-widget='pushmenu']", function() {
 });
 
 
+
+$(function () {
+  // Hide ANY open popover when the click target is
+  //   – NOT the icon itself ('.info-icon'), and
+  //   – NOT inside an already-open popover ('.popover')
+  $('body').on('click', function (e) {
+    if (!$(e.target).closest('.popover, .info-icon').length) {
+      $('.info-icon').popover('hide');
+    }
+  });
+});
+
+
