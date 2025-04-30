@@ -514,7 +514,23 @@ financialPlanningCalcServer <- function(id) {
       paging = FALSE
     ))
     
-    
+        # -----------------------------------------------------------------
+    # G) NOMINAL PLOT
+    # -----------------------------------------------------------------
+    output$nominalPlot <- renderPlotly({
+      df <- scheduleData()
+      cur <- currencySymbol(input$currency)
+      
+      plot_ly(df, x = ~Year, y = ~Nominal, type = 'scatter', mode = 'lines',
+              line = list(color = 'blue', width = 2),
+              name = paste("Nominal Value (", cur, ")")) %>%
+        layout(
+          title = list(text = "Nominal Investment Projection"),
+          xaxis = list(title = "Year"),
+          yaxis = list(title = paste0("Portfolio Value (", cur, ")")),
+          margin = list(l = 50, r = 50, b = 50, t = 50)
+        )
+    })
     
     # -----------------------------------------------------------------
     # H) EXCEL DOWNLOAD HANDLER
