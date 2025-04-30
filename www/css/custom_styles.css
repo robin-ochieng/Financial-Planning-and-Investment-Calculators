@@ -46,8 +46,6 @@
       cursor: pointer;
    }
 
-    
-
     .header-title-container {
        display: flex;
        align-items: center;
@@ -72,7 +70,7 @@
   .menu-container {
       display: block; /* Align items to the start of the container */
       position: fixed; /* Ensure the container is positioned correctly */    
-      top: 200px;  /* Aligns to the top of the viewport */
+      top: 250px;  /* Aligns to the top of the viewport */
       left: 0; 
       width: 260px; /* Match the width of the sidebar-footer */
       padding: 10px 5px; /* Add padding to give some space around the title */
@@ -119,12 +117,22 @@
 
 /* Make the active tab have a gray background and black text */
 .nav-sidebar .nav-item > .nav-link.active {
-  background-color: #787676 !important; /* or another shade of gray */
+  background-color: #6c757d !important; /* or another shade of gray */
   color: #FFF !important;
   border-radius: 8px;
   border-left: 3px solid #6c757d;
 }
 
+
+.info-icon {
+  margin-left: 2px;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer; 
+  border: none;
+  background: none;
+  color: #555;
+}
 
 /* Target the menu item icon in the sidebar */
 /* custom_styles.css */
