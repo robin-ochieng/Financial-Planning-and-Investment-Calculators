@@ -162,7 +162,7 @@
   padding: 8px 20px;
   border-radius: 10px;
   border-bottom: 1px solid #e1e1e1;
-  max-width:1140px;     /* same as the body content */
+  max-width:auto;     /* same as the body content */
   margin:0 auto;        /* centre it */
 }
 
