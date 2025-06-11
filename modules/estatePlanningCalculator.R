@@ -94,7 +94,7 @@ estatePlanningCalcUI <- function(id) {
     fluidRow(
       bs4Card(
         title = "Assets",
-        status = "primary",
+        status = "success",
         width = 6,
         collapsible = TRUE,
           uiOutput(ns("real_estate_ui")),
@@ -106,7 +106,7 @@ estatePlanningCalcUI <- function(id) {
       ),
       bs4Card(
         title = "Liabilities",
-        status = "danger",
+        status = "success",
         width = 6,
         height = "555px",
         collapsible = TRUE,
@@ -120,7 +120,7 @@ estatePlanningCalcUI <- function(id) {
     fluidRow(
       bs4Card(
         title = "Deductions & Estate Duty",
-        status = "warning",
+        status = "success",
         width = 6,
         collapsible = TRUE,
           uiOutput(ns("funeral_expenses_ui")),
@@ -142,7 +142,7 @@ estatePlanningCalcUI <- function(id) {
       ),
       bs4Card(
         title = "Beneficiary Distribution (%)",
-        status = "info",
+        status = "success",
         height = "385px",
         width = 6,
         collapsible = TRUE,
@@ -207,6 +207,7 @@ estatePlanningCalcUI <- function(id) {
         actionButton(ns("calculate"), "Calculate Estate Plan", class = "btn-success control-button", style = "margin-bottom: 15px;") 
       )
     ),
+    uiOutput(ns("disclaimer")),     
     # Row 4: Estate Summary Output
     fluidRow(
       bs4Card(
@@ -221,7 +222,7 @@ estatePlanningCalcUI <- function(id) {
     fluidRow(
       bs4Card(
         title = "Distribution Chart",
-        status = "info",
+        status = "success",
         width = 12,
         collapsible = TRUE,
         plotlyOutput(ns("distributionPlot"), height = "400px")
@@ -236,6 +237,31 @@ estatePlanningCalcUI <- function(id) {
 estatePlanningCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    output$disclaimer <- renderUI({
+      tags$div(
+        style = paste0(
+          "background-color: #f8f9fa; ",
+          "border-left: 6px solid #00964B; ",
+          "padding: 15px; ",
+          "margin-top: 20px; ",
+          "margin-bottom: 30px; ",
+          "border-radius: 6px;"
+        ),
+        tags$div(
+          style = "display: flex; align-items: center; margin-bottom: 10px;",
+          tags$i(
+            class = "fa fa-exclamation-circle",
+            style = "font-size: 24px; margin-right: 8px; color: #00964B;"
+          ),
+          tags$h4("Disclaimer", style = "font-weight: bold; margin: 0;")
+        ),
+        tags$p(
+          style = "font-size: 14px; color: #333; margin-bottom: 0;",
+          "This estate planning calculator is provided for informational and illustrative purposes only. The outputs are based on your inputs and assumptions and should not be considered legal or financial advice. Please consult a qualified estate planning professional for personalized guidance."
+        )
+      )
+    })
 
     # -------------------------------------------------------------
     # A) HELPER: Map currency code to symbol
