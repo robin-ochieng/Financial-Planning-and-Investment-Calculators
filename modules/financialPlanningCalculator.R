@@ -2,19 +2,19 @@
 
 # Define goal settings as a named list.
 goalSettings <- list(
-  "Education" = list(minAmount = 1000000, defaultTerm = 10, defaultAmount = 5000000),
-  "Building a House" = list(minAmount = 1000000, defaultTerm = 5, defaultAmount = 10000000),
-  "Retirement" = list(minAmount = 500000, defaultTerm = 10, defaultAmount = 5000000),
-  "Business/Start Up" = list(minAmount = 50000, defaultTerm = 3, defaultAmount = 1000000),
-  "Emergency Fund" = list(minAmount = 50000, defaultTerm = 10, defaultAmount = 1000000),
-  "Wedding/Dowry/Bride Price" = list(minAmount = 50000, defaultTerm = 1, defaultAmount = 500000),
-  "Vehicle Purchase" = list(minAmount = 250000, defaultTerm = 3, defaultAmount = 500000),
-  "Travel/Vacation" = list(minAmount = 50000, defaultTerm = 1, defaultAmount = 250000),
-  "HealthCare Buffer" = list(minAmount = 50000, defaultTerm = 1, defaultAmount = 250000),
-  "Graduation/Social Event" = list(minAmount = 50000, defaultTerm = 0.25, defaultAmount = 50000),
-  "Personal Purchase e.g. Phone, Laptop" = list(minAmount = 50000, defaultTerm = 0.5, defaultAmount = 50000),
-  "Investment" = list(minAmount = 100000, defaultTerm = 3, defaultAmount = 1000000),
-  "Other" = list(minAmount = 50000, defaultTerm = 0.25, defaultAmount = 50000)
+  "Education" = list(minAmount = 1e6, defaultTerm = 10, defaultAmount = 5e6),
+  "Building a House" = list(minAmount = 1e6, defaultTerm = 5, defaultAmount = 1e7),
+  "Retirement" = list(minAmount = 5e5, defaultTerm = 10, defaultAmount = 5e6),
+  "Business/Start Up" = list(minAmount = 5e4, defaultTerm = 3, defaultAmount = 1e6),
+  "Emergency Fund" = list(minAmount = 5e4, defaultTerm = 10, defaultAmount = 1e6),
+  "Wedding/Dowry/Bride Price" = list(minAmount = 5e4, defaultTerm = 1, defaultAmount = 5e5),
+  "Vehicle Purchase" = list(minAmount = 2.5e5, defaultTerm = 3, defaultAmount = 5e5),
+  "Travel/Vacation" = list(minAmount = 5e4, defaultTerm = 1, defaultAmount = 2.5e5),
+  "HealthCare Buffer" = list(minAmount = 5e4, defaultTerm = 1, defaultAmount = 2.5e5),
+  "Graduation/Social Event" = list(minAmount = 5e4, defaultTerm = 0.25, defaultAmount = 5e4),
+  "Personal Purchase e.g. Phone, Laptop" = list(minAmount = 5e4, defaultTerm = 0.5, defaultAmount = 5e4),
+  "Investment" = list(minAmount = 1e5, defaultTerm = 3, defaultAmount = 1e6),
+  "Other" = list(minAmount = 5e4, defaultTerm = 0.25, defaultAmount = 5e4)
 )
 
 # Module UI for the Financial Planning Calculator
@@ -76,16 +76,18 @@ financialPlanningCalcUI <- function(id) {
       column(
         width = 4,
         bs4Dash::tooltip(
-          selectInput(
-            inputId = ns("goal"),
+          selectizeInput(
+            inputId = ns("goals"),
             label = label_with_info(
-              label_text = "Select your Financial Goal:",
+              label_text = "Select Financial Goals:",
               info_id = ns("goal_info"),
-              popover_title = "Select your Financial Goal",
-              popover_content = "Select your financial goal. For each goal, default minimum amounts and terms are defined."
+              popover_title = "Select your Financial Goals",
+              popover_content = "You can now pick one or more goals to plan for simultaneously."
             ),
             choices = names(goalSettings),
-            selected = "Building a House"
+            selected = "Building a House",
+            multiple = TRUE,
+            options    = list(plugins = list('remove_button'))
           ),
           title = "Select your financial goal. For each goal, default minimum amounts and terms are defined.",
           placement = "right"
@@ -129,7 +131,7 @@ financialPlanningCalcUI <- function(id) {
     fluidRow(
       bs4Card(
         title = "Personal Financial Profile",
-        status = "secondary",
+        status = "success",
         width = 6,
         height = "500px",
         collapsible = TRUE,
@@ -146,29 +148,12 @@ financialPlanningCalcUI <- function(id) {
      ),
       bs4Card(
         title = "Goal Settings & Economic Assumptions",
-        status = "secondary",
+        status = "success",
         width = 6,
-        height = "500px",
         collapsible = TRUE,
+        style = "height: 500px; overflow-y: auto;",
         # Goal Amount (auto defaults based on selected goal if desired)
-          uiOutput(ns("goal_amount_ui")),
-        # Goal Term in years
-        bs4Dash::tooltip(
-          numericInput(
-            inputId = ns("goal_term"), 
-            label = label_with_info(
-              label_text = "Goal Term (years):",
-              info_id = ns("goal_term_info"),
-              popover_title = "Goal Term (years)",
-              popover_content = "Enter the number of years by which you want to achieve your goal. This is the time frame in which you plan to reach your financial target. It is used to calculate the future value of your investments."
-            ),
-            value = 5, 
-            min = 0.25, 
-            step = 0.25
-          ),
-          title = "Enter the number of years by which you want to achieve your goal.",
-          placement = "right"
-        ),
+          uiOutput(ns("goals_ui")),
          # Expected Rate of Return
         bs4Dash::tooltip(
           numericInput(
@@ -197,33 +182,21 @@ financialPlanningCalcUI <- function(id) {
         actionButton(ns("update"), "Generate Projections", class = "btn-primary control-button", style = "margin-bottom: 15px;") 
         )
       ),
+     uiOutput(ns("disclaimer")), 
      fluidRow(
       bs4Card(
         title = "Results Summary", 
-        status = "secondary", 
+        status = "success", 
         width = 12,
         id = ns("ResultsSummary"),
         fluidRow(
           div(style = "margin-bottom: 10px;", uiOutput(ns("fp_summary")))
-        ),
-        fluidRow(
-          downloadButton(ns("download_excel"), "Download Schedule (Excel)", class = "btn-info control-button1")
         )
       )
     ),
     # Graphs: Placed below the inputs/results
-    fluidRow(
-      bs4Card(
-        title = "Investment Projection - Nominal", status = "secondary", width = 12,
-        plotlyOutput(ns("nominalPlot"), height = "400px")
-      )
-    ),
-    fluidRow(
-      bs4Card(
-        title = "Projection Schedule", status = "secondary", width = 12,
-        dataTableOutput(ns("scheduleTable"))
-      )
-    )
+    uiOutput(ns("goalPlots")),
+    uiOutput(ns("goalTables"))
   )
 }
 
@@ -232,6 +205,36 @@ financialPlanningCalcUI <- function(id) {
 financialPlanningCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    output$disclaimer <- renderUI({
+      tags$div(
+        style = paste0(
+          "background-color: #f8f9fa; ",
+          "border-left: 6px solid #00964B; ",
+          "padding: 15px; ",
+          "margin-top: 20px; ",
+          "margin-bottom: 30px; ",
+          "border-radius: 6px;"
+        ),
+        
+        # Header row
+        tags$div(
+          style = "display: flex; align-items: center; margin-bottom: 10px;",
+          tags$i(
+            class = "fa fa-exclamation-circle",
+            style = "font-size: 24px; margin-right: 8px; color: #00964B;"
+          ),
+          tags$h4("Disclaimer", style = "font-weight: bold; margin: 0;")
+        ),
+        
+        # Body message
+        tags$p(
+          style = "font-size: 14px; color: #333; margin-bottom: 0;",
+          "This tool is provided for informational and illustrative purposes only. The projections and calculations are based on user inputs and assumptions and may not reflect future financial conditions or personal circumstances. Please seek advice from a certified financial planner before making any financial decisions."
+        )
+      )
+    })
+
 
     # -----------------------------------------------------------------
     # A) HELPER FUNCTIONS FOR MULTICURRENCY
@@ -344,21 +347,34 @@ financialPlanningCalcServer <- function(id) {
       )
     })
 
-    output$goal_amount_ui <- renderUI({
-      cur <- input$currency
-      autonumericInput(
-        inputId           = ns("goal_amount"),
-        label             = label_with_info(
-                              paste0("Goal Amount (", cur, "):"),
-                              ns("goal_amount_info"),
-                              "Goal Amount",
-                              "Enter the total amount you want to save for your goal. This is the target amount you want to achieve by the end of the goal term. It is used to calculate the required monthly savings."
-                            ),
-        value             = 50000,
-        decimalPlaces     = 0,
-        digitGroupSeparator = ","
-      )
+
+    output$goals_ui <- renderUI({
+      req(input$goals)
+      # for each goal, build a bs4Card with its amount & term inputs
+      cards <- lapply(input$goals, function(g) {
+        settings <- goalSettings[[g]]
+        bs4Card(
+          title = paste(g, "Settings"),
+          status = "success",
+          width = 12,
+          collapsible = TRUE,
+          autonumericInput(
+            ns(paste0(g, "_amount")),
+            label = paste0("Goal Amount (", g, ")"),
+            value = settings$defaultAmount
+          ),
+          numericInput(
+            ns(paste0(g, "_term")),
+            label = paste0("Term (years) – ", g),
+            value = settings$defaultTerm,
+            min = settings$minAmount / settings$defaultAmount,
+            step = 0.25
+          )
+        )
+      })
+      do.call(tagList, cards)
     })
+
 
     # -----------------------------------------------------------------
     # C) EXISTING TRANSLATION + SMOOTH SCROLL
@@ -393,59 +409,58 @@ financialPlanningCalcServer <- function(id) {
       )
     })    
 
-    # Update default Goal Amount and Goal Term based on selected goal
-    observeEvent(input$goal, {
-      req(goalSettings[[input$goal]])
-      updateNumericInput(session, "goal_term", value = goalSettings[[input$goal]]$defaultTerm)
-      updateNumericInput(session, "goal_amount", value = goalSettings[[input$goal]]$defaultAmount)
-    })
     
-    # Reactive: Financial Profile Calculation triggered by "update" button
+    # Reactive: Financial Profile Calculation for multiple goals
     fpData <- eventReactive(input$update, {
+      req(input$goals)  # ensure at least one goal is selected
       withProgress(message = "Calculating financial profile...", value = 0, {
-        # Step 1: Compute Net Worth and Annual Savings
-        incProgress(0.2, detail = "Calculating Net Worth and Annual Savings...")
-      
-        # Net Worth calculation: Assets (Savings + Investments) minus Debt
-        net_worth <- input$savings - input$debt
+        nGoals <- length(input$goals)
+        # allocate 80% of the progress bar across goals, leave 20% for startup/finalizing
+        perGoal <- 0.8 / nGoals
         
-        # Annual Savings: Income minus annual expenses
-        annual_savings <- input$income - (input$expenses * 12)
+        results <- lapply(seq_along(input$goals), function(i) {
+          g <- input$goals[i]
+          incProgress(perGoal, detail = paste("Processing goal:", g))
+          
+          # clamp net worth & annual savings to >=0
+          net_worth      <- pmax(input$savings - input$debt, 0)
+          annual_savings <- pmax(input$income - (input$expenses * 12), 0)
+          savings_rate   <- if (input$income > 0) (annual_savings / input$income) * 100 else 0
+          
+          # read this goal’s specific inputs
+          amt    <- as.numeric(input[[paste0(g, "_amount")]])
+          term   <- as.numeric(input[[paste0(g, "_term")]])
+          r      <- input$exp_return / 100
+          
+          # future value
+          fv_nominal <- amt * (1 + r)^term + 
+                        annual_savings * (((1 + r)^term - 1) / r)
+          
+          # gap and required monthly
+          gap         <- pmax(amt - fv_nominal, 0)
+          req_monthly <- if (gap > 0) gap / (term * 12) else 0
+          
+          # emergency fund check stays same
+          emergency_status <- 
+            if (input$emergency >= input$expenses * 3) "Sufficient" else "Insufficient"
+          
+          list(
+            goal           = g,
+            net_worth      = net_worth,
+            annual_savings = annual_savings,
+            savings_rate   = savings_rate,
+            fv_nominal     = fv_nominal,
+            gap            = gap,
+            req_monthly    = req_monthly,
+            emergency_status = emergency_status
+          )
+        })
         
-        # Savings Rate (%)
-        savings_rate <- (annual_savings / input$income) * 100
-        
-        # Step 2: Compute Future Value of Investments  
-        incProgress(0.2, detail = "Computing future value of investments...")  
-        # Compound interest rate
-        r <- input$exp_return / 100
-        n <- input$goal_term  # number of years until goal
-        total_principal <- input$savings 
-        # Future Value of non-retirement investments
-        fv_nominal <- total_principal * (1 + r)^n + annual_savings * (((1 + r)^n - 1) / r)
-
-        # For all goals, use fv_nominal as the future projection
-        total_future <- fv_nominal
-        gap <- max(input$goal_amount - total_future, 0)
-        req_monthly <- if(gap > 0) gap / (n * 12) else 0
-
-        # Step 4: Assess Insurance and Emergency Fund Status
-        incProgress(0.2, detail = "Assessing emergency fund status...")     
-        # Emergency Fund sufficiency (recommend at least 3 months of expenses)
-        emergency_status <- if(input$emergency >= (input$expenses * 3)) "Sufficient" else "Insufficient"
-        
-      # Finalize results
-      incProgress(0.2, detail = "Finalizing results...")
-      list(net_worth = net_worth,
-           annual_savings = annual_savings,
-           savings_rate = savings_rate,
-           fv_nominal = fv_nominal,
-           total_future = total_future,
-           gap = gap,
-           req_monthly = req_monthly,
-           emergency_status = emergency_status)
+        incProgress(0.1, detail = "Finalizing results...")
+        results
       })
     }, ignoreInit = TRUE, ignoreNULL = FALSE)
+
     
     # -----------------------------------------------------------------
     # E) RESULT SUMMARY
@@ -453,119 +468,152 @@ financialPlanningCalcServer <- function(id) {
     output$fp_summary <- renderUI({
       data <- fpData()
       cur  <- input$currency
-      
-      summary_html <- paste0(
-        "<div style='font-family: \"Nunito\", sans-serif; background-color: #f9f9f9; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>",
-          "<h3 style='margin-top: 0; color: #2c3e50;'>Financial Summary</h3>",
-          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Net Worth:</strong> ", formatCurrency(data$net_worth, cur), "</div>",
-          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Savings Rate:</strong> ", sprintf("%.1f", data$savings_rate), "%</div>",
-          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Future Value of Savings:</strong> ", formatCurrency(data$total_future, cur), "</div>",
-          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Required Monthly Savings for Goal:</strong> ", formatCurrency(data$req_monthly, cur), "</div>",
-          "<div style='margin-bottom:10px; font-size:18px; color: #2c3e50;'><strong>Emergency Fund:</strong> ", data$emergency_status, "</div>"
-      )
-      
-      recommendation <- if (data$gap > 0) {
-        paste0(
-          "<div style='font-size:18px; margin-top:15px; color: #d9534f;'>",
-            "<strong>Recommendation:</strong> You need to save an additional ",
-            formatCurrency(data$req_monthly, cur), " per month to reach your goal within ",
-            input$goal_term, " years.",
+
+      # build each card’s HTML
+      cards <- lapply(data, function(res) {
+        card_html <- paste0(
+          "<div style='font-family: \"Nunito\", sans-serif; background-color: #f9f9f9;",
+                      " padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);",
+                      " margin-bottom: 20px;'>",
+            "<h3 style='margin-top:0; color:#2c3e50;'>", res$goal, " Summary</h3>",
+            "<ul style='list-style:none; padding-left:0; font-size:16px; line-height:1.6; margin-bottom:20px;'>",
+              "<li><strong>Net Worth:</strong> ",      formatCurrency(res$net_worth, cur),        "</li>",
+              "<li><strong>Savings Rate:</strong> ",    sprintf("%.1f", res$savings_rate), "%</li>",
+              "<li><strong>Future Value:</strong> ",    formatCurrency(res$fv_nominal, cur),       "</li>",
+              "<li><strong>Monthly Shortfall:</strong> ", formatCurrency(res$req_monthly, cur),    "</li>",
+              "<li><strong>Emergency Fund:</strong> ",  res$emergency_status,                      "</li>",
+            "</ul>",
+            if (res$gap > 0) {
+              paste0(
+                "<div style='font-size:16px; color:#d9534f;'>",
+                  "<strong>Recommendation:</strong> Save an additional ",
+                  formatCurrency(res$req_monthly, cur),
+                  " per month to meet this goal within the chosen term.",
+                "</div>"
+              )
+            } else {
+              "<div style='font-size:16px; color:#5cb85c;'><strong>Recommendation:</strong> On track to meet this goal.</div>"
+            },
           "</div>"
         )
-      } else {
-        "<div style='font-size:18px; margin-top:15px; color: #5cb85c;'><strong>Recommendation:</strong> Congratulations! Your current savings strategy meets your goal.</div>"
-      }
-      
-      summary_html <- paste0(summary_html, recommendation, "</div>")
-      HTML(summary_html)
+        HTML(card_html)
+      })
+      # if only one card, make it full-width; otherwise two-column layout
+      n <- length(cards)
+      fluidRow(
+        lapply(cards, function(card) {
+          column(
+            width = if (n == 1) 12 else 6,
+            card
+          )
+        })
+      )
     })
-    
-    # -----------------------------------------------------------------
-    # F) SCHEDULE DATA (Yearly Projection)
-    # -----------------------------------------------------------------
-    scheduleData <- eventReactive(input$update, {
-      n_years <- input$goal_term
-      years <- 0:n_years
-      r <- input$exp_return / 100
-      annual_savings <- input$income - (input$expenses * 12)
-      total_principal <- input$savings
-      nominal <- total_principal * (1 + r)^years + annual_savings * (((1 + r)^years - 1) / r)
-      
-      data.frame(Year = years, Nominal = nominal)
-    }, ignoreInit = TRUE, ignoreNULL = FALSE)
-    
-    output$scheduleTable <- renderDataTable({
-      df <- scheduleData()
-      total_principal <- input$savings
-      annual_savings <- input$income - (input$expenses * 12)
-      df$Cumulative_Contributions <- total_principal + annual_savings * df$Year
-      df$Total_Interest <- df$Nominal - df$Cumulative_Contributions
-      df$Month_Year <- paste0("Year ", df$Year)
-      
-      cur <- input$currency
-      df$Nominal <- sapply(df$Nominal, function(x) formatCurrency(x, cur))
-      df$Cumulative_Contributions <- sapply(df$Cumulative_Contributions, function(x) formatCurrency(x, cur))
-      df$Total_Interest <- sapply(df$Total_Interest, function(x) formatCurrency(x, cur))
-      
-      df
-    }, options = list(
-      scrollX = TRUE,
-      scrollY = '400px',
-      paging = FALSE
-    ))
-    
-    # -----------------------------------------------------------------
-    # G) NOMINAL PLOT
-    # -----------------------------------------------------------------
-    output$nominalPlot <- renderPlotly({
-      df <- scheduleData()
-      cur <- currencySymbol(input$currency)
-      
-      plot_ly(df, x = ~Year, y = ~Nominal, type = 'scatter', mode = 'lines',
-              line = list(color = 'blue', width = 2),
-              name = paste("Nominal Value (", cur, ")")) %>%
-        layout(
-          title = list(text = "Nominal Investment Projection"),
-          xaxis = list(title = "Year"),
-          yaxis = list(title = paste0("Portfolio Value (", cur, ")")),
-          margin = list(l = 50, r = 50, b = 50, t = 50)
+
+    # -------------- Dynamic Plot Outputs --------------
+    output$goalPlots <- renderUI({
+      req(fpData())
+      req(input$goals)
+      # one bs4Card + plot per goal
+      cards <- lapply(input$goals, function(g) {
+        bs4Card(
+          title = paste0(g, " Projection (Nominal)"),
+          status = "success",
+          width = 12,
+          plotlyOutput(ns(paste0(g, "_plot")), height = "300px")
         )
+      })
+      do.call(tagList, cards)
     })
-    
-    # -----------------------------------------------------------------
-    # H) EXCEL DOWNLOAD HANDLER
-    # -----------------------------------------------------------------
-    output$download_excel <- downloadHandler(
-      filename = function() {
-        paste("financial_planning_schedule_", Sys.Date(), ".xlsx", sep = "")
-      },
-      content = function(file) {
-        df <- scheduleData()
-        total_principal <- input$savings
-        annual_savings <- input$income - (input$expenses * 12)
-        df$Cumulative_Contributions <- total_principal + annual_savings * df$Year
-        df$Total_Interest <- df$Nominal - df$Cumulative_Contributions
-        
-        wb <- createWorkbook()
-        addWorksheet(wb, "Schedule")
-        
-        headerStyle <- createStyle(
-          fontSize = 12, 
-          fontColour = "white", 
-          fgFill = "#0137A6", 
-          halign = "CENTER", 
-          textDecoration = "bold"
+
+    # -------------- Dynamic Table Outputs --------------
+    output$goalTables <- renderUI({
+      req(fpData())   
+      req(input$goals)
+      cards <- lapply(input$goals, function(g) {
+        bs4Card(
+          title = paste0(g, " Projection Schedule"),
+          status = "success",
+          width = 12,
+          # position download button at top-right
+          tags$div(
+            style = "position: absolute; top: 15px; right: 15px; z-index: 1000;",
+            downloadButton(ns(paste0(g, "_download")), "Download Table", class = "btn-sm btn-info")
+          ),
+          # leave space for the button so it doesn’t overlap the title
+          tags$div(style="margin-top:30px;"),
+          dataTableOutput(ns(paste0(g, "_table")))
         )
-        currencyStyle <- createStyle(numFmt = "\"$\"#,##0.00")
-        
-        writeData(wb, sheet = "Schedule", df, headerStyle = headerStyle)
-        cols_to_format <- c("Nominal", "Cumulative_Contributions", "Total_Interest")
-        colNumbers <- which(names(df) %in% cols_to_format)
-        addStyle(wb, sheet = "Schedule", style = currencyStyle, 
-                 rows = 2:(nrow(df) + 1), cols = colNumbers, gridExpand = TRUE)
-        saveWorkbook(wb, file, overwrite = TRUE)
-      }
-    )
-    
+      })
+      do.call(tagList, cards)
+    })
+
+    for (g in names(goalSettings)) {
+      local({
+        goalName <- g
+            output[[paste0(goalName, "_plot")]] <- renderPlotly({
+                  # build schedule for this goal
+                  term  <- as.numeric(input[[paste0(goalName, "_term")]])
+                  r     <- input$exp_return/100
+                  pr    <- input$savings
+                  sav   <- pmax(input$income - input$expenses*12, 0)
+                  yrs   <- 0:term
+                  nom   <- pr*(1+r)^yrs + sav*(((1+r)^yrs - 1)/r)
+                  df    <- data.frame(Year=yrs, Nominal=nom)
+                  plot_ly(df, x=~Year, y=~Nominal, type="scatter", mode="lines",
+                          name=goalName) %>%
+                    layout(title = goalName)
+                })        
+          # Table
+          output[[paste0(goalName, "_table")]] <- renderDataTable({
+            term  <- as.numeric(input[[paste0(goalName, "_term")]])
+            r     <- input$exp_return/100
+            pr    <- input$savings
+            sav   <- pmax(input$income - input$expenses*12, 0)
+            yrs   <- 0:term
+            nom   <- pr*(1+r)^yrs + sav*(((1+r)^yrs - 1)/r)
+            df    <- data.frame(
+                      Year = yrs,
+                      Nominal = nom,
+                      Cumulative_Contributions = pr + sav*yrs,
+                      Total_Interest = nom - (pr + sav*yrs)
+                    )
+            # Format currency columns
+            df[] <- lapply(df, function(col) {
+              if(is.numeric(col)) formatCurrency(col, input$currency) else col
+            })
+            df
+          }, options = list(scrollX=TRUE, paging=FALSE))
+
+          output[[paste0(goalName, "_download")]] <- downloadHandler(
+            filename = function() {
+              paste0(gsub(" ", "_", goalName), "_schedule_", Sys.Date(), ".xlsx")
+            },
+            content = function(file) {
+              # rebuild the same schedule you render in the table
+              term  <- as.numeric(input[[paste0(goalName, "_term")]])
+              r     <- input$exp_return / 100
+              pr    <- input$savings
+              sav   <- pmax(input$income - input$expenses * 12, 0)
+              yrs   <- 0:term
+              nom   <- pr * (1+r)^yrs + sav * (((1+r)^yrs - 1) / r)
+              df    <- data.frame(
+                Year = yrs,
+                Nominal = nom,
+                Cumulative_Contributions = pr + sav * yrs,
+                Total_Interest = nom - (pr + sav * yrs)
+              )
+              # write to Excel
+              wb <- openxlsx::createWorkbook()
+              openxlsx::addWorksheet(wb, "Schedule")
+              openxlsx::writeData(wb, "Schedule", df)
+              openxlsx::saveWorkbook(wb, file, overwrite = TRUE)
+            }
+          )
+
+      })
+    }
+
+
   })
 }
