@@ -269,7 +269,7 @@ retirementCalcServer <- function(id) {
       autonumericInput(
         inputId           = ns("current_savings"),
         label             = label_with_info(
-                              paste("Current savings (DB & DC) (", cur, "):", sep = ""),
+                              paste("Current savings (", cur, "):", sep = ""),
                               ns("current_savings_info"),
                               "Current retirement savings (including DB/DC)",
                               "The total balance of all retirement accounts today—pensions, 401(k)/403(b), IRAs, provident funds, etc.—in the selected currency. It is the starting principal for the growth projection."
