@@ -97,7 +97,7 @@ personalInvestmentCalcUI <- function(id) {
     fluidRow(
       # Inputs box on the left
       box(
-        status = "secondary",
+        status = "success",
         title = "Investment Inputs", width = 5, height = "535px", 
         # Tooltips for each field
         uiOutput(ns("initial_ui")),
@@ -138,7 +138,7 @@ personalInvestmentCalcUI <- function(id) {
       # Results box on the right
       box(
         title = "Results Summary",
-        status = "secondary",
+        status = "success",
         width = 7,
         height = "535px",
         id = ns("ResultsSummary"),
@@ -161,16 +161,17 @@ personalInvestmentCalcUI <- function(id) {
         actionButton(ns("calculate"), "Calculate", class = "btn-success control-button", style = "margin-bottom: 15px;")
         )
       ),
+      uiOutput(ns("disclaimer")),
     # Graphs on the bottom: Two sets of graphs (Nominal and Inflation-Adjusted)
     fluidRow(
       box(
-        title = "Investment Growth", status = "secondary", width = 12,
+        title = "Investment Growth", status = "success", width = 12,
         plotlyOutput(ns("growthPlot_nominal"))
       )
     ),
     fluidRow(
       box(
-        title = "Summary Table", status = "secondary", width = 12,
+        title = "Summary Table", status = "success", width = 12,
         dataTableOutput(ns("summaryTable"))
       )
     )
@@ -181,6 +182,32 @@ personalInvestmentCalcUI <- function(id) {
 personalInvestmentCalcServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    output$disclaimer <- renderUI({
+      tags$div(
+        style = paste0(
+          "background-color: #f8f9fa; ",
+          "border-left: 6px solid #00964B; ",
+          "padding: 15px; ",
+          "margin-top: 20px; ",
+          "margin-bottom: 30px; ",
+          "border-radius: 6px;"
+        ),
+        tags$div(
+          style = "display: flex; align-items: center; margin-bottom: 10px;",
+          tags$i(
+            class = "fa fa-exclamation-circle",
+            style = "font-size: 24px; margin-right: 8px; color: #00964B;"
+          ),
+          tags$h4("Disclaimer", style = "font-weight: bold; margin: 0;")
+        ),
+        tags$p(
+          style = "font-size: 14px; color: #333; margin-bottom: 0;",
+          "This calculator is provided for informational and illustrative purposes only. Results are based on the inputs and assumptions provided and do not constitute financial advice. Please consult a licensed financial adviser for guidance specific to your financial situation."
+        )
+      )
+    })
+
     # ----------------------------------------------------------------
     # A) HELPER FUNCTION: Map currency code to symbol
     # ----------------------------------------------------------------
