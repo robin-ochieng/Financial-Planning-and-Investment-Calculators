@@ -96,7 +96,7 @@ retirementCalcUI <- function(id) {
     fluidRow(
       box( 
         title = "Personal Details",
-        status = "secondary",
+        status = "success",
         textInput(
           inputId = ns("current_age"),
           label = label_with_info(
@@ -132,7 +132,7 @@ retirementCalcUI <- function(id) {
       ),
       box(
         title = "Financial Details",
-        status = "secondary",
+        status = "success",
         textInput(
           inputId = ns("income_growth"),
           label = label_with_info(
@@ -167,7 +167,7 @@ retirementCalcUI <- function(id) {
       ),
       box(
         title = "Savings Details",
-        status = "secondary",
+        status = "success",
         textInput(
           inputId = ns("future_savings"),
           label = label_with_info(
@@ -185,14 +185,14 @@ retirementCalcUI <- function(id) {
     fluidRow(
       box(
         title = "Retirement Expenses",
-        status = "secondary",
+        status = "success",
         uiOutput(ns("monthly_expense_ui")),
         uiOutput(ns("healthcare_cost_ui")),
         width = 6, height = "220px"
       ),
       box(
         title = "Income & Withdrawal Strategy",
-        status = "secondary",
+        status = "success",
         uiOutput(ns("other_retirement_income_ui")),
         textInput(
           inputId = ns("withdrawal_rate"),
@@ -212,10 +212,11 @@ retirementCalcUI <- function(id) {
                actionButton(ns("calculate"), "Calculate", class = "btn-primary control-button", style = "margin-bottom: 20px;")
         )
       ),
+      uiOutput(ns("disclaimer")),
       fluidRow(
         box(
           title = "Retirement Summary & Recommendations",
-          status = "info",
+          status = "success",
           width = 12,
           htmlOutput(ns("resultText"))
         )
@@ -223,7 +224,7 @@ retirementCalcUI <- function(id) {
       fluidRow(
         box(
           title = "Retirement Savings Projection",
-          status = "secondary",   
+          status = "success",   
           width = 12, 
           id = ns("savingsBox"),
           plotlyOutput(ns("savingsPlot"))
@@ -465,6 +466,37 @@ retirementCalcServer <- function(id) {
           ns("resultText")
          ))
     })
+
+    # 5) Disclaimer
+    output$disclaimer <- renderUI({
+      tags$div(
+        style = paste0(
+          "background-color: #f8f9fa; ",
+          "border-left: 6px solid #00964B; ",
+          "padding: 15px; ",
+          "margin-top: 20px; ",
+          "margin-bottom: 30px; ",
+          "border-radius: 6px;"
+        ),
+        
+        # Header
+        tags$div(
+          style = "display: flex; align-items: center; margin-bottom: 10px;",
+          tags$i(
+            class = "fa fa-exclamation-circle",
+            style = "font-size: 24px; margin-right: 8px; color: #00964B;"
+          ),
+          tags$h4("Disclaimer", style = "font-weight: bold; margin: 0;")
+        ),
+        
+        # Message
+        tags$p(
+          style = "font-size: 14px; color: #333; margin-bottom: 0;",
+          "This calculator is intended for general informational and illustrative purposes only. The results generated are based on the information you provide and certain assumptions that may not reflect future financial conditions or your personal circumstances. It does not constitute financial advice. Please consult a qualified financial adviser before making any financial decisions."
+        )
+      )
+    })
+
     
     # 5) Plot
     output$savingsPlot <- renderPlotly({
