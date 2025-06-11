@@ -341,7 +341,7 @@ irrCalcServer <- function(id) {
         label             = label_with_info(
                               paste("Social Security (", cur, "/year):", sep = ""),
                               ns("social_security_info"),
-                              "Social Security",
+                              "Social Security (Government Pension)",
                               "Your expected annual Social Security benefit in the selected currency. This is a guaranteed income stream that will be added to your retirement income."
                             ),
         value             = 80000,
@@ -355,7 +355,7 @@ irrCalcServer <- function(id) {
       autonumericInput(
         inputId           = ns("pension_income"),
         label             = label_with_info(
-                              paste("Pension (", cur, "/year):", sep = ""),
+                              paste("Pension (Employer/Workplace Pension) (", cur, "/year):", sep = ""),
                               ns("pension_income_info"),
                               "Pension",
                               "Your expected annual pension income in the selected currency. This is another guaranteed income stream that will be added to your retirement income."
@@ -629,31 +629,31 @@ irrCalcServer <- function(id) {
         tags$div(
           style = paste0(
             "background-color: #f8f9fa; ",
-            "border-left: 6px solid #f0ad4e; ",  # 'warning' color, tweak as you like
+            "border-left: 6px solid #00964B; ",
             "padding: 15px; ",
             "margin-top: 20px; ",
+            "margin-bottom: 30px; ",
             "border-radius: 6px;"
           ),
           
-          # Heading row: icon + "Disclaimer"
+          # Heading row with icon and title
           tags$div(
             style = "display: flex; align-items: center; margin-bottom: 10px;",
             tags$i(
               class = "fa fa-exclamation-circle",
-              style = "font-size: 24px; margin-right: 8px; color: #f0ad4e;"  # match the left border color
+              style = "font-size: 24px; margin-right: 8px; color: #00964B;"
             ),
             tags$h4("Disclaimer", style = "font-weight: bold; margin: 0;")
           ),
           
           # Body text
-          p(
+          tags$p(
             style = "font-size: 14px; color: #333; margin-bottom: 0;",
-            "Note: This calculator is provided as a guide only. The projections are based on your inputs and assumptions. ",
-            "They do not account for changes in market conditions, tax laws, or personal circumstances. ",
-            "Please consult a financial adviser for personalized advice."
+            "This calculator is intended for informational and illustrative purposes only. The projections and calculations are based on the information you provide and certain assumptions that may not reflect future financial conditions or your personal situation. It does not constitute financial advice. Please consult a qualified financial adviser before making any financial decisions."
           )
         )
       })
+
 
     })  # End withProgress
   }, ignoreInit = TRUE, ignoreNULL = FALSE)
