@@ -5,14 +5,14 @@ goalSettings <- list(
   "Education" = list(minAmount = 1e6, defaultTerm = 10, defaultAmount = 5e6),
   "Building a House" = list(minAmount = 1e6, defaultTerm = 5, defaultAmount = 1e7),
   "Retirement" = list(minAmount = 5e5, defaultTerm = 10, defaultAmount = 5e6),
-  "Business/Start Up" = list(minAmount = 5e4, defaultTerm = 3, defaultAmount = 1e6),
+  "Business or Start Up" = list(minAmount = 5e4, defaultTerm = 3, defaultAmount = 1e6),
   "Emergency Fund" = list(minAmount = 5e4, defaultTerm = 10, defaultAmount = 1e6),
-  "Wedding/Dowry/Bride Price" = list(minAmount = 5e4, defaultTerm = 1, defaultAmount = 5e5),
+  "Wedding or Dowry" = list(minAmount = 5e4, defaultTerm = 1, defaultAmount = 5e5),
   "Vehicle Purchase" = list(minAmount = 2.5e5, defaultTerm = 3, defaultAmount = 5e5),
-  "Travel/Vacation" = list(minAmount = 5e4, defaultTerm = 1, defaultAmount = 2.5e5),
+  "Travel or Vacation" = list(minAmount = 5e4, defaultTerm = 1, defaultAmount = 2.5e5),
   "HealthCare Buffer" = list(minAmount = 5e4, defaultTerm = 1, defaultAmount = 2.5e5),
-  "Graduation/Social Event" = list(minAmount = 5e4, defaultTerm = 0.25, defaultAmount = 5e4),
-  "Personal Purchase e.g. Phone, Laptop" = list(minAmount = 5e4, defaultTerm = 0.5, defaultAmount = 5e4),
+  "Graduation or Social Event" = list(minAmount = 5e4, defaultTerm = 0.25, defaultAmount = 5e4),
+  "Personal Purchase" = list(minAmount = 5e4, defaultTerm = 0.5, defaultAmount = 5e4),
   "Investment" = list(minAmount = 1e5, defaultTerm = 3, defaultAmount = 1e6),
   "Other" = list(minAmount = 5e4, defaultTerm = 0.25, defaultAmount = 5e4)
 )
@@ -21,7 +21,7 @@ goalSettings <- list(
 financialPlanningCalcUI <- function(id) {
   ns <- NS(id)
   logo_bar <- fluidRow(
-    class = "logo-bar",                     # you’ll style this in CSS
+    class = "logo-bar",                     # you'll style this in CSS
     column(
       width = 12,
       tags$div(
@@ -427,7 +427,7 @@ financialPlanningCalcServer <- function(id) {
           annual_savings <- pmax(input$income - (input$expenses * 12), 0)
           savings_rate   <- if (input$income > 0) (annual_savings / input$income) * 100 else 0
           
-          # read this goal’s specific inputs
+          # read this goal's specific inputs
           amt    <- as.numeric(input[[paste0(g, "_amount")]])
           term   <- as.numeric(input[[paste0(g, "_term")]])
           r      <- input$exp_return / 100
@@ -469,7 +469,7 @@ financialPlanningCalcServer <- function(id) {
       data <- fpData()
       cur  <- input$currency
 
-      # build each card’s HTML
+      # build each card's HTML
       cards <- lapply(data, function(res) {
         card_html <- paste0(
           "<div style='font-family: \"Nunito\", sans-serif; background-color: #f9f9f9;",
@@ -536,11 +536,11 @@ financialPlanningCalcServer <- function(id) {
           status = "success",
           width = 12,
           # position download button at top-right
-          tags$div(
-            style = "position: absolute; top: 15px; right: 15px; z-index: 1000;",
-            downloadButton(ns(paste0(g, "_download")), "Download Table", class = "btn-sm btn-info")
-          ),
-          # leave space for the button so it doesn’t overlap the title
+          # tags$div(
+          #   style = "position: absolute; top: 15px; right: 15px; z-index: 1000;",
+          #   downloadButton(ns(paste0(g, "_download")), "Download Table", class = "btn-sm btn-info")
+          # ),
+          # leave space for the button so it doesn't overlap the title
           tags$div(style="margin-top:30px;"),
           dataTableOutput(ns(paste0(g, "_table")))
         )
@@ -548,72 +548,109 @@ financialPlanningCalcServer <- function(id) {
       do.call(tagList, cards)
     })
 
-    for (g in names(goalSettings)) {
-      local({
-        goalName <- g
-            output[[paste0(goalName, "_plot")]] <- renderPlotly({
-                  # build schedule for this goal
-                  term  <- as.numeric(input[[paste0(goalName, "_term")]])
-                  r     <- input$exp_return/100
-                  pr    <- input$savings
-                  sav   <- pmax(input$income - input$expenses*12, 0)
-                  yrs   <- 0:term
-                  nom   <- pr*(1+r)^yrs + sav*(((1+r)^yrs - 1)/r)
-                  df    <- data.frame(Year=yrs, Nominal=nom)
-                  plot_ly(df, x=~Year, y=~Nominal, type="scatter", mode="lines",
-                          name=goalName) %>%
-                    layout(title = goalName)
-                })        
-          # Table
-          output[[paste0(goalName, "_table")]] <- renderDataTable({
-            term  <- as.numeric(input[[paste0(goalName, "_term")]])
-            r     <- input$exp_return/100
-            pr    <- input$savings
-            sav   <- pmax(input$income - input$expenses*12, 0)
-            yrs   <- 0:term
-            nom   <- pr*(1+r)^yrs + sav*(((1+r)^yrs - 1)/r)
-            df    <- data.frame(
-                      Year = yrs,
-                      Nominal = nom,
-                      Cumulative_Contributions = pr + sav*yrs,
-                      Total_Interest = nom - (pr + sav*yrs)
-                    )
-            # Format currency columns
-            df[] <- lapply(df, function(col) {
-              if(is.numeric(col)) formatCurrency(col, input$currency) else col
-            })
-            df
-          }, options = list(scrollX=TRUE, paging=FALSE))
-
-          output[[paste0(goalName, "_download")]] <- downloadHandler(
-            filename = function() {
-              paste0(gsub(" ", "_", goalName), "_schedule_", Sys.Date(), ".xlsx")
-            },
-            content = function(file) {
-              # rebuild the same schedule you render in the table
-              term  <- as.numeric(input[[paste0(goalName, "_term")]])
-              r     <- input$exp_return / 100
-              pr    <- input$savings
-              sav   <- pmax(input$income - input$expenses * 12, 0)
-              yrs   <- 0:term
-              nom   <- pr * (1+r)^yrs + sav * (((1+r)^yrs - 1) / r)
-              df    <- data.frame(
-                Year = yrs,
-                Nominal = nom,
-                Cumulative_Contributions = pr + sav * yrs,
-                Total_Interest = nom - (pr + sav * yrs)
-              )
-              # write to Excel
-              wb <- openxlsx::createWorkbook()
-              openxlsx::addWorksheet(wb, "Schedule")
-              openxlsx::writeData(wb, "Schedule", df)
-              openxlsx::saveWorkbook(wb, file, overwrite = TRUE)
-            }
+    # Create outputs only for selected goals with proper reactive context
+    observe({
+      req(input$goals)
+      
+      lapply(input$goals, function(goalName) {
+        # Create output ID safely
+        plotId <- paste0(goalName, "_plot")
+        tableId <- paste0(goalName, "_table")
+        # downloadId <- paste0(goalName, "_download")
+        
+        # Plot output
+        output[[plotId]] <- renderPlotly({
+          req(input[[paste0(goalName, "_term")]])
+          req(input[[paste0(goalName, "_amount")]])
+          
+          term  <- as.numeric(input[[paste0(goalName, "_term")]])
+          r     <- input$exp_return/100
+          pr    <- input$savings
+          sav   <- pmax(input$income - input$expenses*12, 0)
+          yrs   <- 0:term
+          nom   <- pr*(1+r)^yrs + sav*(((1+r)^yrs - 1)/r)
+          df    <- data.frame(Year=yrs, Nominal=nom)
+          
+          plot_ly(df, x=~Year, y=~Nominal, type="scatter", mode="lines",
+                  name=goalName) %>%
+            layout(title = goalName,
+                   yaxis = list(title = paste0("Amount (", input$currency, ")")))
+        })
+        
+        # Table output
+        output[[tableId]] <- renderDataTable({
+          req(input[[paste0(goalName, "_term")]])
+          req(input[[paste0(goalName, "_amount")]])
+          
+          term  <- as.numeric(input[[paste0(goalName, "_term")]])
+          r     <- input$exp_return/100
+          pr    <- input$savings
+          sav   <- pmax(input$income - input$expenses*12, 0)
+          yrs   <- 0:term
+          nom   <- pr*(1+r)^yrs + sav*(((1+r)^yrs - 1)/r)
+          
+          df    <- data.frame(
+            Year = yrs,
+            Nominal = nom,
+            Cumulative_Contributions = pr + sav*yrs,
+            Total_Interest = nom - (pr + sav*yrs)
           )
-
+          
+          # Format currency columns
+          df[,2:4] <- lapply(df[,2:4], function(col) {
+            formatCurrency(col, input$currency)
+          })
+          
+          df
+        }, options = list(scrollX=TRUE, pageLength=15, dom='tip'))
+        
+        # # Download handler with reactive values captured
+        # output[[downloadId]] <- downloadHandler(
+        #   filename = function() {
+        #     paste0(gsub(" ", "_", goalName), "_schedule_", Sys.Date(), ".xlsx")
+        #   },
+        #   content = function(file) {
+        #     # Capture reactive values
+        #     term_val <- as.numeric(isolate(input[[paste0(goalName, "_term")]]))
+        #     r_val <- isolate(input$exp_return) / 100
+        #     pr_val <- isolate(input$savings)
+        #     income_val <- isolate(input$income)
+        #     expenses_val <- isolate(input$expenses)
+        #     currency_val <- isolate(input$currency)
+            
+        #     sav_val <- pmax(income_val - expenses_val * 12, 0)
+        #     yrs <- 0:term_val
+        #     nom <- pr_val * (1+r_val)^yrs + sav_val * (((1+r_val)^yrs - 1) / r_val)
+            
+        #     df <- data.frame(
+        #       Year = yrs,
+        #       Nominal = nom,
+        #       Cumulative_Contributions = pr_val + sav_val * yrs,
+        #       Total_Interest = nom - (pr_val + sav_val * yrs)
+        #     )
+            
+        #     # Create workbook with formatted values
+        #     wb <- openxlsx::createWorkbook()
+        #     openxlsx::addWorksheet(wb, "Schedule")
+            
+        #     # Add header with goal name and currency
+        #     openxlsx::writeData(wb, "Schedule", 
+        #                         paste0(goalName, " Projection Schedule (", currency_val, ")"), 
+        #                         startRow = 1)
+            
+        #     # Write data starting from row 3
+        #     openxlsx::writeData(wb, "Schedule", df, startRow = 3)
+            
+        #     # Format currency columns
+        #     currencyStyle <- openxlsx::createStyle(numFmt = "#,##0")
+        #     openxlsx::addStyle(wb, "Schedule", currencyStyle, 
+        #                        rows = 4:(nrow(df)+3), cols = 2:4, gridExpand = TRUE)
+            
+        #     openxlsx::saveWorkbook(wb, file, overwrite = TRUE)
+        #   }
+        # )
       })
-    }
-
+    })
 
   })
 }
