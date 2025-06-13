@@ -339,7 +339,7 @@ irrCalcServer <- function(id) {
       autonumericInput(
         inputId           = ns("social_security"),
         label             = label_with_info(
-                              paste("Social Security (", cur, "/year):", sep = ""),
+                              paste("Social Security (Government Pension) (", cur, "/year):", sep = ""),
                               ns("social_security_info"),
                               "Social Security (Government Pension)",
                               "Your expected annual Social Security benefit in the selected currency. This is a guaranteed income stream that will be added to your retirement income."
@@ -357,7 +357,7 @@ irrCalcServer <- function(id) {
         label             = label_with_info(
                               paste("Pension (Employer/Workplace Pension) (", cur, "/year):", sep = ""),
                               ns("pension_income_info"),
-                              "Pension",
+                              "Pension (Employer/Workplace Pension)",
                               "Your expected annual pension income in the selected currency. This is another guaranteed income stream that will be added to your retirement income."
                             ),
         value             = 200000,
