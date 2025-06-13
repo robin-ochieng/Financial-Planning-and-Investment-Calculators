@@ -171,7 +171,7 @@ retirementCalcUI <- function(id) {
         textInput(
           inputId = ns("future_savings"),
           label = label_with_info(
-            label_text = "Future savings (% of income)",
+            label_text = "Future savings (% of yearly income)",
             info_id = ns("future_savings_info"),
             popover_title = "Future savings (% of income)",
             popover_content = "The portion of your gross income you intend to set aside every year until retirement (e.g., contributions to pension, 401(k), IRA, etc.). It’s the main driver of your retirement savings growth."
@@ -250,7 +250,7 @@ retirementCalcServer <- function(id) {
       autonumericInput(
         inputId           = ns("pre_tax_income"),
         label             = label_with_info(
-                              paste0("Current pre-tax income (", cur, "):"),
+                              paste0("Current yearly pre-tax income (", cur, "):"),
                               ns("pre_tax_income_info"),
                               "Pre-tax Income",
                               "Your gross (pre-tax) income this year in the chosen currency. It is the base for two things:
@@ -272,8 +272,8 @@ retirementCalcServer <- function(id) {
         label             = label_with_info(
                               paste("Current savings (", cur, "):", sep = ""),
                               ns("current_savings_info"),
-                              "Current retirement savings (including DB/DC)",
-                              "The total balance of all retirement accounts today—pensions, 401(k)/403(b), IRAs, provident funds, etc.—in the selected currency. It is the starting principal for the growth projection."
+                              "Current retirement savings",
+                              "Current personal saving set aside for retirement outside of employer and Government pension contribution."
                             ),
         value             = 10000,
         decimalPlaces     = 0,
