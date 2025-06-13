@@ -411,55 +411,70 @@ financialPlanningCalcServer <- function(id) {
 
     
     # Reactive: Financial Profile Calculation for multiple goals
-    fpData <- eventReactive(input$update, {
-      req(input$goals)  # ensure at least one goal is selected
-      withProgress(message = "Calculating financial profile...", value = 0, {
-        nGoals <- length(input$goals)
-        # allocate 80% of the progress bar across goals, leave 20% for startup/finalizing
-        perGoal <- 0.8 / nGoals
-        
-        results <- lapply(seq_along(input$goals), function(i) {
-          g <- input$goals[i]
-          incProgress(perGoal, detail = paste("Processing goal:", g))
-          
-          # clamp net worth & annual savings to >=0
-          net_worth      <- pmax(input$savings - input$debt, 0)
-          annual_savings <- pmax(input$income - (input$expenses * 12), 0)
-          savings_rate   <- if (input$income > 0) (annual_savings / input$income) * 100 else 0
-          
-          # read this goal's specific inputs
-          amt    <- as.numeric(input[[paste0(g, "_amount")]])
-          term   <- as.numeric(input[[paste0(g, "_term")]])
-          r      <- input$exp_return / 100
-          
-          # future value
-          fv_nominal <- amt * (1 + r)^term + 
-                        annual_savings * (((1 + r)^term - 1) / r)
-          
-          # gap and required monthly
-          gap         <- pmax(amt - fv_nominal, 0)
-          req_monthly <- if (gap > 0) gap / (term * 12) else 0
-          
-          # emergency fund check stays same
-          emergency_status <- 
-            if (input$emergency >= input$expenses * 3) "Sufficient" else "Insufficient"
-          
-          list(
-            goal           = g,
-            net_worth      = net_worth,
-            annual_savings = annual_savings,
-            savings_rate   = savings_rate,
-            fv_nominal     = fv_nominal,
-            gap            = gap,
-            req_monthly    = req_monthly,
-            emergency_status = emergency_status
-          )
+    fpData <- reactive({
+      req(input$update)  # trigger when the button is clicked
+
+      isolate({
+        # Ensure all required inputs exist
+        if (is.null(input$goals) ||
+            is.null(input$savings) ||
+            is.null(input$debt) ||
+            is.null(input$income) ||
+            is.null(input$expenses) ||
+            is.null(input$emergency) ||
+            is.null(input$exp_return)) {
+          return(NULL)
+        }
+        withProgress(message = "Calculating financial profile...", value = 0, {
+          nGoals <- length(input$goals)
+          perGoal <- 0.8 / nGoals
+
+          results <- lapply(seq_along(input$goals), function(i) {
+            g <- input$goals[i]
+            incProgress(perGoal, detail = paste("Processing goal:", g))
+
+            # clamp net worth & annual savings to >=0
+            net_worth      <- pmax(input$savings - input$debt, 0)
+            annual_savings <- pmax(input$income - (input$expenses * 12), 0)
+            savings_rate   <- if (input$income > 0) (annual_savings / input$income) * 100 else 0
+
+            # read this goal's specific inputs
+            amt  <- as.numeric(ifelse(is.null(input[[paste0(g, "_amount")]]), 0, input[[paste0(g, "_amount")]]))
+            term <- as.numeric(ifelse(is.null(input[[paste0(g, "_term")]]), 1, input[[paste0(g, "_term")]]))
+            r      <- input$exp_return / 100
+
+            # future value calculation
+            fv_nominal <- amt * (1 + r)^term +
+                          annual_savings * (((1 + r)^term - 1) / r)
+
+            # shortfall gap
+            gap         <- pmax(amt - fv_nominal, 0)
+            req_monthly <- if (gap > 0) gap / (term * 12) else 0
+
+            emergency_status <- if (!is.null(input$emergency) && !is.null(input$expenses) &&
+                                    input$emergency >= input$expenses * 3) {
+              "Sufficient"
+            } else {
+              "Insufficient"
+            }
+
+            list(
+              goal              = g,
+              net_worth         = net_worth,
+              annual_savings    = annual_savings,
+              savings_rate      = savings_rate,
+              fv_nominal        = fv_nominal,
+              gap               = gap,
+              req_monthly       = req_monthly,
+              emergency_status  = emergency_status
+            )
+          })
+
+          incProgress(0.1, detail = "Finalizing results...")
+          results
         })
-        
-        incProgress(0.1, detail = "Finalizing results...")
-        results
       })
-    }, ignoreInit = TRUE, ignoreNULL = FALSE)
+    })
 
     
     # -----------------------------------------------------------------
